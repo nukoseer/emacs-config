@@ -733,8 +733,6 @@
 (eval-after-load "dired" '(progn
 			    (define-key dired-mode-map
 			      (vector 'remap 'beginning-of-buffer) 'dired-back-to-top)
-			    ))
-(eval-after-load "dired" '(progn
 			    (define-key dired-mode-map
 			      (vector 'remap 'end-of-buffer) 'dired-jump-to-bottom)
 			    ))
