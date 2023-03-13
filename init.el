@@ -104,7 +104,7 @@
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
 ;; set default directory to c++ folder
-(setq default-directory "C:/Programming" )
+(setq default-directory "C:/")
 
 (add-hook 'emacs-startup-hook
           (lambda ()
@@ -496,10 +496,10 @@
 ;; (setq auto-revert-buffer-list-filter
 ;;       'magit-auto-revert-repository-buffer-p)
 
-;; (if (eq system-type 'windows-nt)
+;;(if (eq system-type 'windows-nt)
 ;;     (progn
-;;       (setq exec-path (add-to-list 'exec-path "C:/Program Files/Git/bin"))
-;;       (setenv "PATH" (concat "C:\\Program Files\\Git\\bin;" (getenv "PATH")))))
+;;       (setq exec-path (add-to-list 'exec-path "~/.emacs.d"))
+;;       (setenv "PATH" (concat "~/.emacs.d" (getenv "PATH")))))
 
 ;;(defun nano-modeline-update-windows ()
   "Modify the mode line depending on the presence of a window below."
@@ -552,7 +552,22 @@
  (grep-apply-setting
    'grep-find-command
    '("rg --pcre2 -H --no-heading -n -S -e \"\" ./ " . 38)
- )
+   )
+
+(defun grep-fd (command-args)
+  (interactive
+   (progn
+     (grep-compute-defaults)
+     (if grep-find-command
+	 (list (read-shell-command "Run find (like this): "
+                                   '("fd \"\" -x \"%HOMEDRIVE%%HOMEPATH%\\.emacs.d\\concat.bat\" {}" . 5) 'grep-find-history))
+       ;; No default was set
+       (read-string
+        "compile.el: No `grep-find-command' command available. Press RET.")
+       (list nil))))
+  (when command-args
+    (let ((null-device nil))		; see grep
+      (grep command-args))))
 
 ;; (defun casey-find-corresponding-file ()
 ;;   "Find the file that corresponds to this one."
@@ -702,10 +717,15 @@
 
 ;; C-c C-\ c-backslash-region
 
-;; M-s h r highligh-regexp
-;; M-s h u unhighligh-regexp
+;; M-s h r highlight-regexp
+;; M-s h u unhighlight-regexp
 
 ;; C-x C-l downcase-region
+;; C-x C-u upcase-region
+
+;; M-! shell-command
+;; M-& async-shell-command
+;; M-| shell-command-on-region
 
 (global-set-key [remap goto-line] 'goto-line-with-feedback)
 (defun goto-line-with-feedback ()
@@ -743,6 +763,10 @@
     (when (eq major-mode 'compilation-mode)
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'my-colorize-compilation-buffer))
+
+(require 'tramp)
+(setq tramp-default-method "plink")
+(customize-set-variable 'tramp-syntax 'simplified)
 
 ;;close git service
 (setq vc-handled-backends nil)
