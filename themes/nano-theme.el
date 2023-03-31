@@ -291,7 +291,25 @@
 
     ;; If we use nano-modeline package
     `(nano-modeline-active-name ((t (:foreground ,nano-color-foreground :inherit (nano-modeline-active bold)))))
-   )
+
+    `(which-func ((t (:foreground ,nano-color-faded
+	              :background nil
+		      :overline nil
+		      :underline nil
+		      :box nil))))
+
+    ;; narrow-indirect.el
+    `(ni-mode-line-buffer-id ((t (:foreground ,nano-color-faded
+		                  :background nil
+				  :overline nil
+				  :underline nil
+				  :box `(:line-width 1
+					 :color ,nano-color-faded
+					 :style nil)
+				  ))))
+    
+    ;;`(ni-mode-line-buffer-id ((t (:inherit mode-line-buffer-id))))
+    )
 
   (custom-theme-set-variables
    'nano

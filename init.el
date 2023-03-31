@@ -25,6 +25,19 @@
  )
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
 
+(defun my-load-all-in-directory (dir)
+  "`load' all elisp libraries in directory DIR which are not already loaded."
+;;  (interactive "D")
+  (let ((libraries-loaded (mapcar #'file-name-sans-extension
+                                  (delq nil (mapcar #'car load-history)))))
+    (dolist (file (directory-files dir t ".+\\.elc?$"))
+      (let ((library (file-name-sans-extension file)))
+        (unless (member library libraries-loaded)
+          (load library nil t)
+          (push library libraries-loaded))))))
+
+(my-load-all-in-directory '"~/.emacs.d/others/")
+
 ;; theme
 (setq custom--inhibit-theme-enable nil)
 (load-theme 'nano t)
@@ -95,7 +108,7 @@
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
 ;; set default directory to c++ folder
-(setq default-directory "C:/")
+(setq default-directory "C:/Programming")
 
 (add-hook 'emacs-startup-hook
           (lambda ()
@@ -252,9 +265,7 @@
    ;; C-c C-c comment region (in c++ mode) (already defined)
    ;; C-c C-v uncomment region (in c++ mode)
    (local-set-key (kbd "C-c C-v") #'uncomment-region)
-
    (local-set-key (kbd "<C-tab>") #'c-indent-line-or-region)
-   (local-set-key (kbd "C-c C-g") #'imenu)
    ;; ***_API keywords will be like noise macros (ex. __declspec(dllexport))
    ;; for correct indentation 
    (setq c-noise-macro-names "[A-Z_]+_API")
@@ -269,12 +280,7 @@
    (local-set-key (kbd "C-c C-c") #'comment-region)
    (local-set-key (kbd "C-c C-v") #'uncomment-region)
    (local-set-key (kbd "<C-tab>") #'c-indent-line-or-region)
-   (local-set-key (kbd "C-c C-g") #'imenu)
    ))
-
-(defun my-imenu-rescan ()
-  (interactive)
-  (imenu--menubar-select imenu--rescan-item))
 
 ;; disable auto save mode
 (setq auto-save-default nil)
@@ -720,6 +726,16 @@
 ;; M-& async-shell-command
 ;; M-| shell-command-on-region
 
+;; C-M-Space mark-sexp
+
+;; C-x n n Narrow down to between point and mark (narrow-to-region).
+
+;; C-x n w Widen to make the entire buffer accessible again (widen).
+
+;; C-x n p Narrow down to the current page (narrow-to-page).
+
+;; C-x n d Narrow down to the current defun
+
 (global-set-key [remap goto-line] 'goto-line-with-feedback)
 (defun goto-line-with-feedback ()
   "Show line numbers temporarily, while prompting for the line number input"
@@ -823,6 +839,67 @@
 (global-set-key (kbd "C-c v") 'mmv-toggle-mark-visibility)
 
 ;; Show last mark end
+
+(which-function-mode 1)
+(setq which-func-unknown "-")
+
+(defun ido-goto-symbol (&optional symbol-list)
+  "Refresh imenu and jump to a place in the buffer using Ido."
+  (interactive)
+  (unless (featurep 'imenu)
+    (require 'imenu nil t))
+  (cond
+   ((not symbol-list)
+    (let ((ido-mode ido-mode)
+          (ido-enable-flex-matching
+           (if (boundp 'ido-enable-flex-matching)
+               ido-enable-flex-matching t))
+          name-and-pos symbol-names position)
+      (unless ido-mode
+        (ido-mode 1)
+        (setq ido-enable-flex-matching t))
+      (while (progn
+               (imenu--cleanup)
+               (setq imenu--index-alist nil)
+               (ido-goto-symbol (imenu--make-index-alist))
+               (setq selected-symbol
+                     (ido-completing-read "Symbol? " symbol-names))
+               (string= (car imenu--rescan-item) selected-symbol)))
+      (unless (and (boundp 'mark-active) mark-active)
+        (push-mark nil t nil))
+      (setq position (cdr (assoc selected-symbol name-and-pos)))
+      (cond
+       ((overlayp position)
+        (goto-char (overlay-start position)))
+       (t
+        (goto-char position)))))
+   ((listp symbol-list)
+    (dolist (symbol symbol-list)
+      (let (name position)
+        (cond
+         ((and (listp symbol) (imenu--subalist-p symbol))
+          (ido-goto-symbol symbol))
+         ((listp symbol)
+          (setq name (car symbol))
+          (setq position (cdr symbol)))
+         ((stringp symbol)
+          (setq name symbol)
+          (setq position
+                (get-text-property 1 'org-imenu-marker symbol))))
+        (unless (or (null position) (null name)
+                    (string= (car imenu--rescan-item) name))
+          (add-to-list 'symbol-names name)
+          (add-to-list 'name-and-pos (cons name position))))))))
+
+(global-set-key (kbd "C-i") 'ido-goto-symbol)
+
+;; narrow-indirect.el
+(eval-after-load "narrow-indirect" '(progn
+				      (define-key ctl-x-4-map "nd" #'ni-narrow-to-defun-indirect-other-window)
+				      (define-key ctl-x-4-map "nn" #'ni-narrow-to-region-indirect-other-window)
+				      (define-key ctl-x-4-map "np" #'ni-narrow-to-page-indirect-other-window)
+				      (setq ni-buf-name-prefix "")
+				      ))
 
 ;;close git service
 (setq vc-handled-backends nil)
