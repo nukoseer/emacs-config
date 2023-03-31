@@ -15,7 +15,7 @@
  '(grep-use-null-device nil)
  '(linum-format " %5i ")
  '(package-selected-packages
-   '(expand-region dumb-jump smartscan rainbow-delimiters highlight-numbers glsl-mode gcmh buffer-move))
+   '(vdiff expand-region dumb-jump smartscan rainbow-delimiters highlight-numbers glsl-mode gcmh buffer-move))
  '(rainbow-delimiters-max-face-count 1))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -23,17 +23,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
-;;(add-to-list 'load-path "~/.emacs.d/nano-emacs/")
 (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-
-;; (require 'nano-layout)
-
-;; (require 'nano-theme-dark)
-;; (require 'nano-faces)
-;; (nano-faces)
-;; (require 'nano-theme)
-;; (nano-theme)
-;; (require 'nano-modeline)
 
 ;; theme
 (setq custom--inhibit-theme-enable nil)
@@ -54,6 +44,7 @@
 (global-so-long-mode 1)
 (global-display-line-numbers-mode 0)
 (add-hook 'prog-mode-hook 'highlight-numbers-mode)
+(repeat-mode 1)
 ;;(add-hook 'prog-mode-hook 'display-line-numbers-mode)
 
 (global-set-key (kbd "C-=") 'er/expand-region)
@@ -569,6 +560,8 @@
     (let ((null-device nil))		; see grep
       (grep command-args))))
 
+(global-set-key (kbd "C-x C-z") 'grep-fd)
+
 ;; (defun casey-find-corresponding-file ()
 ;;   "Find the file that corresponds to this one."
 ;;   (interactive)
@@ -767,6 +760,69 @@
 (require 'tramp)
 (setq tramp-default-method "plink")
 (customize-set-variable 'tramp-syntax 'simplified)
+
+(eval-after-load "vdiff" '(progn
+			    (define-key vdiff-mode-map (kbd "C-c") vdiff-mode-prefix-map)
+			    (setq exec-path (add-to-list 'exec-path "c:/Program Files/Git/usr/bin"))
+			    (setenv "PATH" (concat (getenv "PATH") ";c:/Program Files/Git/usr/bin"))))
+
+(setq dired-dwim-target t)
+
+(defvar buffer-navigation-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<right>") 'next-buffer)
+    (define-key map (kbd "<left>") 'previous-buffer)
+    map)
+  "Keymap to repeat `next-buffer' and `previous-buffer'.  Used in `repeat-mode'.")
+(put 'next-buffer 'repeat-map 'buffer-navigation-repeat-map)
+(put 'previous-buffer 'repeat-map 'buffer-navigation-repeat-map)
+
+;; Show last mark start
+(defface mmv-face
+  '((t :background "maroon2" :foreground "white"))
+  "Face used for showing the mark's position.")
+(defface mmv-face-internal
+  '((t :inherit 'mmv-face))
+  "mmv-face is defined in nano-theme.el")
+(defvar-local mmv-mark-overlay nil
+  "The overlay for showing the mark's position.")
+(defvar-local mmv-is-mark-visible t
+  "The overlay is visible only when this variable's value is t.")
+(defun mmv-draw-mark (&rest _)
+  "Make the mark's position stand out by means of a one-character-long overlay.
+   If the value of variable `mmv-is-mark-visible' is nil, the mark will be
+   invisible."
+  (unless mmv-mark-overlay
+    (setq mmv-mark-overlay (make-overlay 0 0 nil t))
+    (overlay-put mmv-mark-overlay 'face 'mmv-face-internal))
+  (let ((mark-position (mark t)))
+    (cond
+     ((null mark-position) (delete-overlay mmv-mark-overlay))
+     ((and (< mark-position (point-max))
+           (not (eq ?\n (char-after mark-position))))
+      (overlay-put mmv-mark-overlay 'after-string nil)
+      (move-overlay mmv-mark-overlay mark-position (1+ mark-position)))
+     (t
+      ; This branch is called when the mark is at the end of a line or at the
+      ; end of the buffer. We use a bit of trickery to avoid the higlight
+      ; extending from the mark all the way to the right end of the frame.
+      (overlay-put mmv-mark-overlay 'after-string
+                   (propertize " " 'face (overlay-get mmv-mark-overlay 'face)))
+      (move-overlay mmv-mark-overlay mark-position mark-position)))))
+(add-hook 'pre-redisplay-functions #'mmv-draw-mark)
+
+(defun mmv-toggle-mark-visibility ()
+  "Toggles the mark's visiblity and redraws it (whether invisible or visible)."
+  (interactive)
+  (setq mmv-is-mark-visible (not mmv-is-mark-visible))
+  (if mmv-is-mark-visible
+	(set-face-attribute 'mmv-face-internal nil :inherit 'mmv-face)
+      (set-face-attribute 'mmv-face-internal nil :inherit 'unspecified :background 'unspecified :foreground 'unspecified))
+  (mmv-draw-mark))
+
+(global-set-key (kbd "C-c v") 'mmv-toggle-mark-visibility)
+
+;; Show last mark end
 
 ;;close git service
 (setq vc-handled-backends nil)

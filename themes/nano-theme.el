@@ -278,7 +278,19 @@
     `(widget-field ((t (:background ,nano-color-subtle))))
 
    ;; highlight numbers
-   `(highlight-numbers-number ((t (:foreground ,nano-color-salient))))
+    `(highlight-numbers-number ((t (:foreground ,nano-color-salient))))
+
+    `(mmv-face ((t (;;:foreground ,nano-color-faded
+                              :background ,nano-color-subtle
+ 		              :overline nil
+		              :underline nil
+                              ;;:box `(:line-width (-1 . -1)
+                              ;;         :color ,nano-color-background
+                              ;;         :style nil)
+			      ))))
+
+    ;; If we use nano-modeline package
+    `(nano-modeline-active-name ((t (:foreground ,nano-color-foreground :inherit (nano-modeline-active bold)))))
    )
 
   (custom-theme-set-variables
