@@ -498,43 +498,6 @@
 ;;       (setq exec-path (add-to-list 'exec-path "~/.emacs.d"))
 ;;       (setenv "PATH" (concat "~/.emacs.d" (getenv "PATH")))))
 
-;;(defun nano-modeline-update-windows ()
-  "Modify the mode line depending on the presence of a window below."
-
-;;  (dolist (window (window-list))
-;;    (with-selected-window window
-;;      (if (or (one-window-p t)
-;;	      (eq (window-in-direction 'below) (minibuffer-window))
-;;	      (not (window-in-direction 'below)))
-;;	  (with-current-buffer (window-buffer window)
-;;	    (setq mode-line-format "%-"))
-;;	(with-current-buffer (window-buffer window)
-;; 	  (setq mode-line-format nil)))
-;;            (if (window-in-direction 'above)
-;;      	      (face-remap-add-relative 'header-line '(:overline "#777777"))
-;;      	    (face-remap-add-relative 'header-line '(:overline nil)))
-;;      )))
-;;(add-hook 'window-configuration-change-hook 'nano-modeline-update-windows)
-
-;; (defun pulse-line (&rest _)
-;;   "Pulse the current line."
-;;   (pulse-momentary-highlight-one-line (point)))
-
-;; (dolist (command '(scroll-up-command scroll-down-command
-;; 				     recenter-top-bottom other-window))
-;;   (advice-add command :after #'pulse-line))
-
-;; (defun add-custom-keyw()
-;;   ;;adds a few special keywords for c and c++ modes"
-;;   (font-lock-add-keywords nil '(("\\<\\(global\\)" . 'font-lock-special-macro-face)
-;; 				("\\<\\(internal\\)" . 'font-lock-special-macro-face)
-;; 				("\\<\\(local_persist\\)" . 'font-lock-special-macro-face))))
-
-;; (add-hook 'c++-mode-hook 'add-custom-keyw)
-
-;; (defvar special-macro-regexp (rx bow (or "global" "internal" "local_persist") eow))
-;; (font-lock-add-keywords nil `((,special-macro-regexp . `font-lock-special-macro-face)))
-
 ;; add global, internal and local_persist keywords for c/c++
 (add-hook 'c-mode-common-hook
 	  (lambda ()
@@ -568,101 +531,24 @@
 
 (global-set-key (kbd "C-x C-z") 'grep-fd)
 
-;; (defun casey-find-corresponding-file ()
-;;   "Find the file that corresponds to this one."
-;;   (interactive)
-;;   (setq CorrespondingFileName nil)
-;;   (setq BaseFileName (file-name-sans-extension buffer-file-name))
-;;   (if (string-match "\\.c" buffer-file-name)
-;;       (setq CorrespondingFileName (concat BaseFileName ".h")))
-;;   (if (string-match "\\.h" buffer-file-name)
-;;       (if (file-exists-p (concat BaseFileName ".c")) (setq CorrespondingFileName (concat BaseFileName ".c"))
-;; 	(setq CorrespondingFileName (concat BaseFileName ".cpp"))))
-;;   (if (string-match "\\.hin" buffer-file-name)
-;;       (setq CorrespondingFileName (concat BaseFileName ".cin")))
-;;   (if (string-match "\\.cin" buffer-file-name)
-;;       (setq CorrespondingFileName (concat BaseFileName ".hin")))
-;;   (if (string-match "\\.cpp" buffer-file-name)
-;;       (setq CorrespondingFileName (concat BaseFileName ".h")))
-;;   (if CorrespondingFileName (find-file CorrespondingFileName)
-;;     (error "Unable to find a corresponding file")))
-
 (defun casey-find-corresponding-file ()
   "Find the file that corresponds to this one."
   (interactive)
+  (setq CorrespondingFileName nil)
   (setq BaseFileName (file-name-sans-extension buffer-file-name))
-  (setq FileExtension nil)
   (if (string-match "\\.c" buffer-file-name)
-      (setq FileExtension ".h"))
+      (setq CorrespondingFileName (concat BaseFileName ".h")))
   (if (string-match "\\.h" buffer-file-name)
-      (if (file-exists-p (concat BaseFileName ".c")) (setq FileExtension ".c")
-	(setq FileExtension ".cpp")))
+      (if (file-exists-p (concat BaseFileName ".c")) (setq CorrespondingFileName (concat BaseFileName ".c"))
+	(setq CorrespondingFileName (concat BaseFileName ".cpp"))))
   (if (string-match "\\.hin" buffer-file-name)
-      (setq FileExtension ".cin"))
+      (setq CorrespondingFileName (concat BaseFileName ".cin")))
   (if (string-match "\\.cin" buffer-file-name)
-      (setq FileExtension ".hin"))
+      (setq CorrespondingFileName (concat BaseFileName ".hin")))
   (if (string-match "\\.cpp" buffer-file-name)
-      (setq FileExtension ".h"))
-
-  (setq DefDirectory default-directory)
-  (setq BaseFileName (file-name-sans-extension buffer-file-name))
-  (setq NonDirectory (file-name-nondirectory BaseFileName))
-  (setq CorrespondingFileName (concat DefDirectory NonDirectory FileExtension))
-
-  (if (string-match ".h" FileExtension)
-      (if (file-exists-p CorrespondingFileName)
-	  (find-file CorrespondingFileName)
-	(setq CorrespondingFileName (concat DefDirectory "inc/" NonDirectory FileExtension))
-	(if (file-exists-p CorrespondingFileName)
-	    (find-file CorrespondingFileName)
-	  (setq CorrespondingFileName (concat DefDirectory "include/" NonDirectory FileExtension))
-	  (if (file-exists-p CorrespondingFileName)
-	      (find-file CorrespondingFileName)
-	    (setq CorrespondingFileName (concat DefDirectory "includes/" NonDirectory FileExtension))
-	    (if (file-exists-p CorrespondingFileName)
-		(find-file CorrespondingFileName)
-	      (setq CorrespondingFileName (concat DefDirectory "../" NonDirectory FileExtension))
-	      (if (file-exists-p CorrespondingFileName)
-		  (find-file CorrespondingFileName)
-		(setq CorrespondingFileName (concat DefDirectory "../inc/" NonDirectory FileExtension))
-		(if (file-exists-p CorrespondingFileName)
-		    (find-file CorrespondingFileName)
-		  (setq CorrespondingFileName (concat DefDirectory "../include/" NonDirectory FileExtension))
-		  (if (file-exists-p CorrespondingFileName)
-		      (find-file CorrespondingFileName)
-		    (setq CorrespondingFileName (concat DefDirectory "../includes/" NonDirectory FileExtension))
-		    (if (file-exists-p CorrespondingFileName)
-			(find-file CorrespondingFileName)
-		      (error "Unable to find a corresponding file")))))))))
-    (setq CorrespondingFileName (concat DefDirectory "../" NonDirectory FileExtension))
-    (if (file-exists-p CorrespondingFileName)
-	(find-file CorrespondingFileName)
-      (setq CorrespondingFileName (concat DefDirectory "../src/" NonDirectory FileExtension))
-      (if (file-exists-p CorrespondingFileName)
-	  (find-file CorrespondingFileName)
-	(setq CorrespondingFileName (concat DefDirectory "../source/" NonDirectory FileExtension))
-	(if (file-exists-p CorrespondingFileName)
-	    (find-file CorrespondingFileName)
-	  (setq CorrespondingFileName (concat DefDirectory "../sources/" NonDirectory FileExtension))
-	  (if (file-exists-p CorrespondingFileName)
-	      (find-file CorrespondingFileName)
-	    (if (string-match ".c" FileExtension)
-		(setq FileExtension ".c")
-	      (setq FileExtension ".cpp"))
-	    (setq CorrespondingFileName (concat DefDirectory "../" NonDirectory FileExtension))
-	    (if (file-exists-p CorrespondingFileName)
-		(find-file CorrespondingFileName)
-	      (setq CorrespondingFileName (concat DefDirectory "../src/" NonDirectory FileExtension))
-	      (if (file-exists-p CorrespondingFileName)
-		  (find-file CorrespondingFileName)
-		(setq CorrespondingFileName (concat DefDirectory "../source/" NonDirectory FileExtension))
-		(if (file-exists-p CorrespondingFileName)
-		    (find-file CorrespondingFileName)
-		  (setq CorrespondingFileName (concat DefDirectory "../sources/" NonDirectory FileExtension))
-		  (if (file-exists-p CorrespondingFileName)
-		      (find-file CorrespondingFileName)
-		    (error "Unable to find a corresponding file")))))))))))
-    
+      (setq CorrespondingFileName (concat BaseFileName ".h")))
+  (if CorrespondingFileName (find-file CorrespondingFileName)
+    (error "Unable to find a corresponding file")))
 
 (defun casey-find-corresponding-file-other-window ()
   "Find the file that corresponds to this one."
@@ -677,7 +563,6 @@
    (local-set-key (kbd "C-x o") #'casey-find-corresponding-file)
    (local-set-key (kbd "C-x 4 o") #'casey-find-corresponding-file-other-window)
    ))
-
 
 (global-set-key (kbd "C-x C-c") 'grep-find)
 (global-set-key (kbd "<M-f4>") 'save-buffers-kill-terminal)
@@ -695,59 +580,21 @@
 (defcustom xref-after-return-hook '()
   "Functions called after returning to a pre-jump location.")
 
-;; M-s o Occur
-
-;; Ubuntu like emacs colors for nano theme
-;; (setq nano-color-foreground "#ECEFF4")
-;; (setq nano-color-background "#300A24")
-;; (setq nano-color-highlight  "#3D1836")
-;; (setq nano-color-critical   "#EBCB8B")
-;; (setq nano-color-salient    "#BA7BA6")
-;; (setq nano-color-strong     "#ECEFF4")
-;; (setq nano-color-popout     "#D08770")
-;; (setq nano-color-subtle     "#5E4356")
-;; (setq nano-color-faded      "#785065")
-
 (global-auto-revert-mode)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
-;; describe-char to learn face of the char cursor stands on (maybe also describe-face, customize-face, customize-group)
-;; C-M-h mark function
-
-;; C-c C-\ c-backslash-region
-
-;; M-s h r highlight-regexp
-;; M-s h u unhighlight-regexp
-
-;; C-x C-l downcase-region
-;; C-x C-u upcase-region
-
-;; M-! shell-command
-;; M-& async-shell-command
-;; M-| shell-command-on-region
-
-;; C-M-Space mark-sexp
-
-;; C-x n n Narrow down to between point and mark (narrow-to-region).
-
-;; C-x n w Widen to make the entire buffer accessible again (widen).
-
-;; C-x n p Narrow down to the current page (narrow-to-page).
-
-;; C-x n d Narrow down to the current defun
-
 (global-set-key [remap goto-line] 'goto-line-with-feedback)
-(defun goto-line-with-feedback ()
+(defun goto-line-with-feedback (arg)
   "Show line numbers temporarily, while prompting for the line number input"
-  (interactive)
+  (interactive "p")
   (if (and (boundp 'display-line-numbers-mode)
-           display-line-numbers-mode)
+           (if (eq arg 4) global-display-line-numbers-mode display-line-numbers-mode)) ;; C-u M-g M-g goto-line in recent buffer
       (call-interactively 'goto-line)
     (unwind-protect
         (progn
-          (display-line-numbers-mode 1)
+	  (if (eq arg 4) (global-display-line-numbers-mode 1) (display-line-numbers-mode 1))
           (call-interactively 'goto-line))
-      (display-line-numbers-mode 0))))
+      (if (eq arg 4) (global-display-line-numbers-mode 0) (display-line-numbers-mode 0)))))
 
 ;; C-x C-j go back to parent directory in dired.
 (add-hook 'dired-mode-hook 'dired-omit-mode)
@@ -795,8 +642,7 @@
 
 ;; make-mark-visible.el
 (eval-after-load "make-mark-visible" '(progn
-					(global-set-key (kbd "C-c v") 'mmv-toggle-mark-visibility)
-					))
+					(global-set-key (kbd "C-c v") 'mmv-toggle-mark-visibility)))
 
 (which-function-mode 1)
 (setq which-func-unknown "-")
@@ -856,8 +702,7 @@
 				      (define-key ctl-x-4-map "nd" #'ni-narrow-to-defun-indirect-other-window)
 				      (define-key ctl-x-4-map "nn" #'ni-narrow-to-region-indirect-other-window)
 				      (define-key ctl-x-4-map "np" #'ni-narrow-to-page-indirect-other-window)
-				      (setq ni-buf-name-prefix "")
-				      ))
+				      (setq ni-buf-name-prefix "")))
 
 ;;close git service
 (setq vc-handled-backends nil)
@@ -866,3 +711,26 @@
       gc-cons-percentage 0.1)
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
+
+;; M-s o Occur
+
+;; describe-char to learn face of the char cursor stands on (maybe also describe-face, customize-face, customize-group)
+;; C-M-h mark function
+;; C-c C-\ c-backslash-region
+
+;; M-s h r highlight-regexp
+;; M-s h u unhighlight-regexp
+
+;; C-x C-l downcase-region
+;; C-x C-u upcase-region
+
+;; M-! shell-command
+;; M-& async-shell-command
+;; M-| shell-command-on-region
+
+;; C-M-Space mark-sexp
+
+;; C-x n n Narrow down to between point and mark (narrow-to-region).
+;; C-x n w Widen to make the entire buffer accessible again (widen).
+;; C-x n p Narrow down to the current page (narrow-to-page).
+;; C-x n d Narrow down to the current defun
