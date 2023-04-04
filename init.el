@@ -753,4 +753,11 @@
 ;; C-x n p Narrow down to the current page (narrow-to-page).
 ;; C-x n d Narrow down to the current defun
 
+;; https://www.reddit.com/r/emacs/comments/xvj3b/til_about_calc_and_quick_calc_modes/
+;; https://www.reddit.com/r/emacs/comments/jdrcer/calc_is_fun/
+;; C-x * e
+;; C-x * u calc-embedded-update-formula
+;; C-x * : calc-grab-sum-down
 
+;; C-M-u backward-up-list
+;; C-M-n forward-list
