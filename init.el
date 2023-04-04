@@ -508,10 +508,10 @@
 
 ;;(set-variable 'grep-command "findstr -s -n -i -l ")
 
-(set-variable 'grep-command "rg --pcre2 -H --no-heading -n -S -e ")
+(set-variable 'grep-command "rg --pcre2 -j 8 -H --no-heading -n -S -e ")
  (grep-apply-setting
    'grep-find-command
-   '("rg --pcre2 -H --no-heading -n -S -e \"\" ./ " . 38)
+   '("rg --pcre2 -j 8 -H --no-heading -n -S -e \"\" C:\\git_bc\\PNDriver\\ -tc -tcpp" . 43)
    )
 
 (defun grep-fd (command-args)
@@ -570,8 +570,10 @@
 ;; (define-key c++-mode-map (kbd "C-x 4 o") 'casey-find-corresponding-file-other-window)
 
 (setq dumb-jump-force-searcher 'rg)
+(setq dumb-jump-rg-search-args "--pcre2 -j 8 -H --no-heading -n -S")
+(setq dumb-jump-default-project "C:/Programming/") ;; Project specific
 (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
-;(setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+;;(setq xref-show-definitions-function #'xref-show-definitions-completing-read)
 
 ;; (find-library xref)
 ;; We override these 2 functions to prevent pulsing after jumps.
@@ -734,3 +736,5 @@
 ;; C-x n w Widen to make the entire buffer accessible again (widen).
 ;; C-x n p Narrow down to the current page (narrow-to-page).
 ;; C-x n d Narrow down to the current defun
+
+
