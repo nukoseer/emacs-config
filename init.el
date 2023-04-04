@@ -588,15 +588,26 @@
 (global-set-key [remap goto-line] 'goto-line-with-feedback)
 (defun goto-line-with-feedback (arg)
   "Show line numbers temporarily, while prompting for the line number input"
+  ;; C-u M-g M-g goto-line in recent buffer. (universal-argument)
+  ;; display-buffer shows recent buffer, it is useful when used with universal-argument.
   (interactive "p")
+  (setq curr-buffer (current-buffer))
   (if (and (boundp 'display-line-numbers-mode)
-           (if (eq arg 4) global-display-line-numbers-mode display-line-numbers-mode)) ;; C-u M-g M-g goto-line in recent buffer
+           (if (eq arg 4) ;; universal-argument
+	       (progn (display-buffer (other-buffer (current-buffer) t)) global-display-line-numbers-mode)
+	     display-line-numbers-mode)) 
       (call-interactively 'goto-line)
     (unwind-protect
         (progn
-	  (if (eq arg 4) (global-display-line-numbers-mode 1) (display-line-numbers-mode 1))
+    	  (if (eq arg 4)
+	      (progn (display-buffer (other-buffer (current-buffer) t)) (global-display-line-numbers-mode 1))
+	    (display-line-numbers-mode 1))
           (call-interactively 'goto-line))
-      (if (eq arg 4) (global-display-line-numbers-mode 0) (display-line-numbers-mode 0)))))
+      (if (eq arg 4)
+	  (progn (display-buffer curr-buffer) (global-display-line-numbers-mode 0))
+	(display-line-numbers-mode 0))
+      )
+    ))
 
 ;; C-x C-j go back to parent directory in dired.
 (add-hook 'dired-mode-hook 'dired-omit-mode)
