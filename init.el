@@ -717,6 +717,11 @@
 				      (define-key ctl-x-4-map "np" #'ni-narrow-to-page-indirect-other-window)
 				      (setq ni-buf-name-prefix "")))
 
+(setq compilation-scroll-output t)
+
+;; 'scroll-other-window-up is C-M-v
+(global-set-key (kbd "C-M-c") 'scroll-other-window-down)
+
 ;;close git service
 (setq vc-handled-backends nil)
 
