@@ -309,8 +309,26 @@
 				  ))))
     
     ;;`(ni-mode-line-buffer-id ((t (:inherit mode-line-buffer-id))))
-    )
 
+    `(avy-lead-face ((t (:foreground ,nano-color-background
+				     :background ,nano-color-salient
+				     :overline nil
+				     :underline nil
+				     :weight bold
+				     ))))
+    `(avy-lead-face-0 ((t (:foreground ,nano-color-background
+				     :background ,nano-color-critical
+				     :overline nil
+				     :underline nil
+				     :weight bold
+				     ))))
+    `(avy-lead-face-2 ((t (:foreground ,nano-color-background
+				     :background ,nano-color-function
+				     :overline nil
+				     :underline nil
+				     :weight bold
+				     ))))
+    )
   (custom-theme-set-variables
    'nano
    '(linum-format " %5i ")

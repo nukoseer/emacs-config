@@ -722,6 +722,12 @@
 ;; 'scroll-other-window-up is C-M-v
 (global-set-key (kbd "C-M-c") 'scroll-other-window-down)
 
+(global-set-key (kbd "M-j") 'avy-goto-char-timer)
+
+(defadvice compile (before ad-compile-smart activate)
+  "Advises `compile' so it sets the argument COMINT to t."
+  (ad-set-arg 1 t))
+
 ;;close git service
 (setq vc-handled-backends nil)
 
@@ -761,3 +767,10 @@
 
 ;; C-M-u backward-up-list
 ;; C-M-n forward-list
+
+;; C-M-l reposition-window
+
+;; C-x r w save window layout to register
+;; C-x r j open window layout in register
+
+;; M-s w isearch-forward-word
