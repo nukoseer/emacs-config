@@ -728,6 +728,21 @@
   "Advises `compile' so it sets the argument COMINT to t."
   (ad-set-arg 1 t))
 
+(setq find-program "fd.exe")
+
+(projectile-mode 1)
+;; default was C-c p
+(define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map)
+(setq projectile-generic-command "fd . -0 --type f -print0")
+(add-to-list 'projectile-globally-ignored-directories "*.svg")
+
+(rg-define-search rg-c/cpp-project
+  "Search C/C++ project source code."
+  :dir project
+  :flags '("--pcre2 -j 8 -S")
+  :files "*.{c,cpp,h}")
+(advice-add 'projectile-ripgrep :override #'rg-c/cpp-project)
+
 ;;close git service
 (setq vc-handled-backends nil)
 
@@ -774,3 +789,9 @@
 ;; C-x r j open window layout in register
 
 ;; M-s w isearch-forward-word
+
+;; Projectile
+;; C-x p p switch project
+;; C-x p f find project file
+;; C-x p s r search in project
+
