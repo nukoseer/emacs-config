@@ -15,7 +15,7 @@
  '(grep-use-null-device nil)
  '(linum-format " %5i ")
  '(package-selected-packages
-   '(vdiff expand-region dumb-jump smartscan rainbow-delimiters highlight-numbers glsl-mode gcmh buffer-move))
+   '(rg projectile avy vdiff expand-region dumb-jump smartscan rainbow-delimiters highlight-numbers glsl-mode gcmh buffer-move))
  '(rainbow-delimiters-max-face-count 1))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -508,10 +508,10 @@
 
 ;;(set-variable 'grep-command "findstr -s -n -i -l ")
 
-(set-variable 'grep-command "rg --pcre2 -j 8 -H --no-heading -n -S -e ")
+(set-variable 'grep-command "rg --pcre2 -j 8 -H --no-heading --color=always -n -S -e ")
  (grep-apply-setting
    'grep-find-command
-   '("rg --pcre2 -j 8 -H --no-heading -n -S -e \"\" C:\\git_bc\\PNDriver\\ -tc -tcpp" . 43)
+   '("rg --pcre2 -j 8 -H --no-heading --color=always -n -S -e \"\" . -tc -tcpp" . 58)
    )
 
 (defun grep-fd (command-args)
@@ -723,6 +723,7 @@
 (global-set-key (kbd "C-M-c") 'scroll-other-window-down)
 
 (global-set-key (kbd "M-j") 'avy-goto-char-timer)
+(setq avy-timeout-seconds 0.4)
 
 (defadvice compile (before ad-compile-smart activate)
   "Advises `compile' so it sets the argument COMINT to t."
@@ -742,6 +743,12 @@
   :flags '("--pcre2 -j 8 -S")
   :files "*.{c,cpp,h}")
 (advice-add 'projectile-ripgrep :override #'rg-c/cpp-project)
+
+(add-hook
+ 'asm-mode-hook
+ (lambda ()
+   (local-unset-key (kbd ";"))  
+   ))
 
 ;;close git service
 (setq vc-handled-backends nil)
@@ -795,3 +802,5 @@
 ;; C-x p f find project file
 ;; C-x p s r search in project
 
+
+;; C-x r N rectangle line numbers
