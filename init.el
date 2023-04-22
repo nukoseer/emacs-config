@@ -157,6 +157,7 @@
   (global-auto-revert-mode)
   (window-divider-mode t)
   (repeat-mode t)
+  (recentf-mode t)
 
   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
   (load-theme 'nano t)
