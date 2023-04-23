@@ -677,7 +677,7 @@
   ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
   ;; For some commands and buffer sources it is useful to configure the
   ;; :preview-key on a per-command basis using the `consult-customize' macro.
-(consult-customize
+  (consult-customize
    ;;consult-theme :preview-key '(:debounce 0.2 any)
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
@@ -690,6 +690,31 @@
   ;; Both < and C-+ work reasonably well.
   (setq consult-narrow-key "<") ;; "C-+"
 
+  (defvar consult--fd-command nil)
+  (defun consult--fd-builder (input)
+    (unless consult--fd-command
+      (setq consult--fd-command
+            (if (eq 0 (call-process-shell-command "fdfind"))
+		"fdfind"
+              "fd")))
+    (pcase-let* ((`(,arg . ,opts) (consult--command-split input))
+		 (`(,re . ,hl) (funcall consult--regexp-compiler
+					arg 'extended t)))
+      (when re
+	(cons (append
+               (list consult--fd-command
+                     "--color=never" "--full-path"
+                     (consult--join-regexps re 'extended))
+               opts)
+              hl))))
+
+  (defun consult-fd (&optional dir initial)
+    (pcase-let* ((`(,prompt ,paths ,dir) (consult--directory-prompt "fd" dir))
+		 (default-directory dir))
+      (find-file (consult--find prompt #'consult--fd-builder initial))))
+
+  (advice-add 'consult-find :override #'consult-fd)
+  
   ;; Optionally make narrowing help available in the minibuffer.
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
   ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
@@ -701,7 +726,11 @@
   )
 
 (use-package which-key
-  :ensure t)
+  :ensure t
+  :init
+  :config
+  (setq which-key-use-C-h-commands nil)
+  (set-face-attribute 'which-key-command-description-face nil :foreground (face-foreground 'font-lock-variable-name-face)))
 
 (use-package embark
   :ensure t
@@ -715,6 +744,15 @@
 
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
+
+  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
+  ;; strategy, if you want to see the documentation from multiple providers.
+  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+
+  :config
+
+  (setq embark-help-key ".")
 
   (defun embark-which-key-indicator ()
     "An embark indicator that displays keymaps using which-key.
@@ -754,12 +792,13 @@ targets."
   (advice-add #'embark-completing-read-prompter
               :around #'embark-hide-which-key-indicator)
 
-  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
-  ;; strategy, if you want to see the documentation from multiple providers.
-  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
-  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
-
-  :config
+  ;; (setq embark-verbose-indicator-display-action '((display-buffer-reuse-window display-buffer-below-selected)
+  ;;  						  (window-height . 0.2)))
+  
+  ;; (setq embark-indicators
+  ;;  	'(embark-verbose-indicator
+  ;;  	  embark-highlight-indicator
+  ;;  	  embark-isearch-highlight-indicator))
 
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
@@ -822,3 +861,4 @@ targets."
 
 ;; C-x r N rectangle line numbers
 
+;; M-x ielm interactively evaluate emacs lisp expressions
