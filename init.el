@@ -543,10 +543,24 @@
 
 (use-package avy
   :ensure t
-  :init
-  (setq avy-timeout-seconds 0.4)
+  
   :bind (
-	 ("M-j" . avy-goto-char-timer)))
+	 ("M-j" . avy-goto-char-timer))
+  :config
+
+  (setq avy-timeout-seconds 0.3)
+  (setq avy-single-candidate-jump nil)
+
+  (defun avy-action-embark (pt)
+    (unwind-protect
+	(save-excursion
+          (goto-char pt)
+          (embark-act))
+      (select-window
+       (cdr (ring-ref avy-ring 0))))
+    t)
+
+  (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark))
 
 (use-package rg
   :ensure t
