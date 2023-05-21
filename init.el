@@ -204,6 +204,8 @@
 
   (setq find-program "fd.exe")
 
+  (setq switch-to-buffer-obey-display-actions t)
+
   ;;close git service
   (setq vc-handled-backends nil)
 
@@ -230,7 +232,8 @@
 	 ("C-x C-b"   . ibuffer)
 	 ("<f1>"      . build)
          ("<f2>"      . run)
-         ("<f3>"      . generate))
+         ("<f3>"      . generate)
+	 ("C-x w"     . window-toggle-side-windows))
 
   :config
 
@@ -369,6 +372,16 @@
     (interactive "p")
     (move-line (if (null n) 1 n)))
 
+  ;; Introduce a bottom side window that catches
+  ;; compilations, greps etc.
+  (add-to-list 'display-buffer-alist
+	       `(,(rx (| "*compilation*" "*grep*" "*ripgrep*" "*rg*"))
+		 (display-buffer-in-side-window)
+		 (side . bottom)
+		 (slot . 0)
+		 (window-parameters . ((no-delete-other-windows . t)))
+		 (window-height . 0.3)))
+  
   (defun add-todo ()
     (interactive)
     (insert "// TODO: "))
@@ -970,4 +983,5 @@ targets."
 
 ;; M-x ielm interactively evaluate emacs lisp expressions
 
+;; C-x C-q (read-only-mode)
 
