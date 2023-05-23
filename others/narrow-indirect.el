@@ -240,7 +240,7 @@ See `clone-indirect-buffer'."
                           (read-string "Buffer name suffix: "))))
   (let ((here  (point)))
     (mark-defun)
-    (next-line) ;; I added this to get rid of empty line above the narrowed function.
+    (forward-line) ;; I added this to get rid of empty line above the narrowed function.
     (ni-narrow-to-region-indirect-other-window
      (region-beginning) (region-end) here full-name
      (and (not full-name)  (or text  (progn (require 'which-func) (which-function)))))))

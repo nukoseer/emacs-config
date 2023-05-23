@@ -104,7 +104,7 @@
 ;; A few more useful configurations...
 (use-package emacs
   :init
-
+  
   (add-hook 'emacs-startup-hook '(lambda ()
 				   (message "Emacs ready in %s with %d garbage collections."
 					    (format "%.2f seconds"
@@ -209,6 +209,35 @@
   ;;close git service
   (setq vc-handled-backends nil)
 
+  ;; activate fullscreen, open empty buffer and init.el
+  (defun start-up-screen ()
+    (if (< (count-windows) 2)
+	(progn
+	  (setq inhibit-startup-message t)
+	  (setq inhibit-splash-screen t)
+	  (setq initial-scratch-message nil)
+	  (toggle-frame-fullscreen)
+	  (switch-to-buffer "*scratch*")
+	  (split-window-right)
+	  (other-window 1)
+	  (find-file "~/.emacs.d/init.el")
+	  (other-window 1))))
+
+  (start-up-screen)
+
+  (defun my-load-all-in-directory (dir)
+    "`load' all elisp libraries in directory DIR which are not already loaded."
+    ;;  (interactive "D")
+    (let ((libraries-loaded (mapcar #'file-name-sans-extension
+                                    (delq nil (mapcar #'car load-history)))))
+      (dolist (file (directory-files dir t ".+\\.elc?$"))
+	(let ((library (file-name-sans-extension file)))
+          (unless (member library libraries-loaded)
+            (load library nil t)
+            (push library libraries-loaded))))))
+
+  (my-load-all-in-directory '"~/.emacs.d/others/")
+
   :bind (
 	 ("C-z"       . undo)
 	 ("M-<up>"    . move-line-up)
@@ -256,34 +285,6 @@
 
   ;;(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
   ;;(load-theme 'nano t)
-
-  ;; activate fullscreen, open empty buffer and init.el
-  (defun start-up-screen ()
-    (if (< (count-windows) 2)
-	(progn
-	  (toggle-frame-fullscreen)
-	  (setq inhibit-splash-screen 'my-start-screen)
-	  (switch-to-buffer "*scratch*")
-	  (setq initial-scratch-message nil)
-	  (split-window-right)
-	  (other-window 1)
-	  (find-file "~/.emacs.d/init.el")
-	  (other-window 1))))
-
-  (start-up-screen)
-  
-  (defun my-load-all-in-directory (dir)
-    "`load' all elisp libraries in directory DIR which are not already loaded."
-    ;;  (interactive "D")
-    (let ((libraries-loaded (mapcar #'file-name-sans-extension
-                                    (delq nil (mapcar #'car load-history)))))
-      (dolist (file (directory-files dir t ".+\\.elc?$"))
-  	(let ((library (file-name-sans-extension file)))
-          (unless (member library libraries-loaded)
-            (load library nil t)
-            (push library libraries-loaded))))))
-
-  (my-load-all-in-directory '"~/.emacs.d/others/")
 
   ;; c / c++ visual studio style code indentation
   (defun my-c-mode-common-hook ()
@@ -608,8 +609,17 @@
   (add-hook 'xref-backend-functions 'dumb-jump-xref-activate))
 
 (use-package tramp
-  :init
+  :ensure nil
+  :defer t
+  :config
   (setq tramp-default-method "plink")
+  (setq remote-file-name-inhibit-cache nil)
+  (setq vc-ignore-dir-regexp
+	(format "%s\\|%s"
+                vc-ignore-dir-regexp
+                tramp-file-name-regexp))
+  (setq tramp-verbose 1)
+
   ;;(customize-set-variable 'tramp-syntax 'simplified)
   )
 
@@ -670,18 +680,15 @@
 
 (use-package rg
   :ensure t
-  :init)
+  :defer t)
 
 (use-package projectile
   :ensure t
-  :init
-
+  :config
   (projectile-mode)
   (setq projectile-generic-command "fd . -0 --type f -print0")
-
-  ;; default was C-c p
-  :config
-  (define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map)
+  
+  ;;(define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map)
   (add-to-list 'projectile-globally-ignored-directories "*.svg")
 
   (rg-define-search rg-c/cpp-project
@@ -692,6 +699,9 @@
 
   (advice-add 'projectile-ripgrep :override #'rg-c/cpp-project)
 
+  ;; default was C-c p
+  :bind-keymap (("C-x p" . projectile-command-map))
+  
   :bind (
 	 ("C-x o" . projectile-find-other-file)
 	 ("C-x 4 o" . projectile-find-other-file-other-window)))
