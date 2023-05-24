@@ -609,13 +609,12 @@
   (add-hook 'xref-backend-functions 'dumb-jump-xref-activate))
 
 (use-package tramp
-  :ensure nil
-  :defer t
+  :defer 1
   :config
   (setq tramp-default-method "plink")
   (setq remote-file-name-inhibit-cache nil)
   (setq vc-ignore-dir-regexp
-	(format "%s\\|%s"
+  	(format "%s\\|%s"
                 vc-ignore-dir-regexp
                 tramp-file-name-regexp))
   (setq tramp-verbose 1)
