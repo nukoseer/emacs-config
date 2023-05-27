@@ -954,6 +954,17 @@ targets."
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
+(use-package ediff
+  :defer t
+  :config
+
+  (setenv "PATH" (concat (getenv "PATH") ";C:/Program Files/Git/usr/bin"))
+  (setq exec-path (append exec-path '("C:/Program Files/Git/usr/bin")))
+
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+  (setq ediff-split-window-function 'split-window-horizontally)
+  (setq ediff-diff-options "-w"))
+
 (setq gc-cons-threshold 16777216 ; 16mb
       gc-cons-percentage 0.1)
 
