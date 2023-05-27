@@ -210,7 +210,7 @@
   (setq vc-handled-backends nil)
 
   ;; activate fullscreen, open empty buffer and init.el
-  (defun start-up-screen ()
+  (defun startup-screen ()
     (if (< (count-windows) 2)
 	(progn
 	  (setq inhibit-startup-message t)
@@ -223,7 +223,20 @@
 	  (find-file "~/.emacs.d/init.el")
 	  (other-window 1))))
 
-  (start-up-screen)
+  (startup-screen)
+
+  ;; This hook is called after emacsclient creates a frame.
+  (add-hook 'server-after-make-frame-hook '(lambda ()
+					     (startup-screen)
+					     ;; This is duplicated version of the window-divider
+					     ;; face settings from use-package modus-themes.
+					     ;; If we don't put this piece of code here emacsclient shows window-divider completely black.
+					     (let ((bg (face-background 'default)))
+					       (custom-set-faces
+						`(window-divider ((t :foreground ,bg :background ,bg)))
+						`(window-divider-first-pixel ((t :foreground ,(face-background 'mode-line))))
+						`(window-divider-last-pixel ((t :foreground ,(face-background 'mode-line))))))
+					     ))
 
   (defun my-load-all-in-directory (dir)
     "`load' all elisp libraries in directory DIR which are not already loaded."
