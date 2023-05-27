@@ -16,11 +16,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(grep-use-null-device nil)
- '(linum-format " %5i ")
  '(package-selected-packages
-   '(modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move))
- '(rainbow-delimiters-max-face-count 1))
+   '(modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move)))
 
 (use-package modus-themes
   :ensure t
@@ -77,29 +74,29 @@
           (accent-2 blue-warmer)
           (accent-3 red-cooler)))
 
+  (defvar after-enable-theme-hook nil
+    "Normal hook run after enabling a theme." )
+  
+  (defun run-after-enable-theme-hook (&rest _args)
+    "Run `after-enable-theme-hook'."
+    (run-hooks 'after-enable-theme-hook)
+    (let ((bg (face-background 'default)))
+      (custom-set-faces
+       ;; Make the active mode line have a pseudo 3D effect (this assumes
+       ;; you are using the default mode line and not an extra package).
+       '(mode-line ((t :box (:style released-button))))
+       `(font-lock-variable-name-face ((t :foreground ,(face-foreground 'default))))
+       `(window-divider ((t :foreground ,bg :background ,bg)))
+       `(window-divider-first-pixel ((t :foreground ,(face-background 'mode-line))))
+       `(window-divider-last-pixel ((t :foreground ,(face-background 'mode-line))))
+       )))
+  
+  (advice-add 'enable-theme :after #'run-after-enable-theme-hook)
+    
   ;; Load the theme of your choice.
   (load-theme 'modus-operandi)
 
-  ;; Make the active mode line have a pseudo 3D effect (this assumes
-  ;; you are using the default mode line and not an extra package).
-  (custom-set-faces
-   '(mode-line ((t :box (:style released-button)))))
-
-  (font-lock-add-keywords 'c++-mode
-			  '(("\\(\\w+\\)\\s-*\("
-			     (1 font-lock-function-name-face)))
-			  t)
-  
-  (custom-set-faces
-   `(font-lock-variable-name-face ((t :foreground ,(face-foreground 'default))))
-   )
-  
-  (let ((bg (face-background 'default)))
-    (custom-set-faces
-     `(window-divider ((t :foreground ,bg :background ,bg)))
-     `(window-divider-first-pixel ((t :foreground ,(face-background 'mode-line))))
-     `(window-divider-last-pixel ((t :foreground ,(face-background 'mode-line))))
-     )))
+  )
 
 ;; A few more useful configurations...
 (use-package emacs
@@ -138,6 +135,9 @@
                   mode-line-misc-info
 		  mode-line-end-spaces))
 
+  (setq grep-use-null-device nil)
+  (setq linum-format " %5i ")
+  
   ;; switch-to-buffer-other-window will switch vertically
   (setq split-width-threshold nil)
   (setq split-height-threshold 200)
@@ -561,8 +561,10 @@
 				   (font-lock-add-keywords nil
 							   '(("\\<\\(global_variable\\)\\>" . font-lock-keyword-face)
 							     ("\\<\\(internal\\)\\>" . font-lock-keyword-face)
-							     ("\\<\\(local_persist\\)\\>" . font-lock-keyword-face)))))
-  
+							     ("\\<\\(local_persist\\)\\>" . font-lock-keyword-face)
+							     ("\\(\\w+\\)\\s-*\("  . font-lock-function-name-face)
+							   ))))
+
   (add-hook 'prog-mode-hook '(lambda ()
 			       (local-set-key (kbd "<tab>") #'dabbrev-expand)
 			       (local-set-key (kbd "<C-tab>") #'c-indent-line-or-region)
@@ -593,6 +595,7 @@
   :hook (prog-mode . rainbow-delimiters-mode)
 
   :config
+  (setq rainbow-delimiters-max-face-count 1)
   ;; set rainbow-delimiters to not highlight < and >
   (defun my-rainbow-delimiters-face (depth match loc)
     (unless (memq (char-after loc) '(?\< ?\>))
@@ -700,7 +703,6 @@
   (projectile-mode)
   (setq projectile-generic-command "fd . -0 --type f -print0")
   
-  ;;(define-key projectile-mode-map (kbd "C-x p") 'projectile-command-map)
   (add-to-list 'projectile-globally-ignored-directories "*.svg")
 
   (rg-define-search rg-c/cpp-project
@@ -715,6 +717,8 @@
   :bind-keymap (("C-x p" . projectile-command-map))
   
   :bind (
+	 ("M-s f" . projectile-find-file)
+	 ("M-s 4 f" . projectile-find-file-other-window)
 	 ("C-x o" . projectile-find-other-file)
 	 ("C-x 4 o" . projectile-find-other-file-other-window)))
 
@@ -1017,4 +1021,3 @@ targets."
 ;; M-x ielm interactively evaluate emacs lisp expressions
 
 ;; C-x C-q (read-only-mode)
-
