@@ -1,6 +1,8 @@
 (setq gc-cons-threshold most-positive-fixnum ; 2^61 bytes
       gc-cons-percentage 0.7)
 
+(setq native-comp-speed 3) ;; maximum native Elisp speed!
+
 (eval-when-compile
   (require 'use-package))
 (require 'bind-key)   
@@ -17,7 +19,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move)))
+   '(multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move)))
 
 (use-package modus-themes
   :ensure t
@@ -394,7 +396,7 @@
 		 (side . bottom)
 		 (slot . 0)
 		 (window-parameters . ((no-delete-other-windows . t)))
-		 (window-height . 0.3)))
+		 (window-height . 0.25)))
   
   (defun add-todo ()
     (interactive)
@@ -637,6 +639,12 @@
 
   ;;(customize-set-variable 'tramp-syntax 'simplified)
   )
+
+(use-package multiple-cursors
+  :ensure t
+  ;; TODO: We can check other useful functions of this module.
+  :bind (
+	 ("C-c c" . mc/edit-lines)))
 
 ;; make-mark-visible.el
 (use-package make-mark-visible
