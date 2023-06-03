@@ -667,6 +667,8 @@
   :hook (dired-mode . dired-omit-mode)
 
   :config
+  (put 'dired-find-alternate-file 'disabled nil)
+  
   (defun dired-back-to-top ()
     (interactive)
     (beginning-of-buffer)
@@ -678,7 +680,10 @@
     (dired-next-line -1))
 
   (define-key dired-mode-map (vector 'remap 'beginning-of-buffer) 'dired-back-to-top)
-  (define-key dired-mode-map (vector 'remap 'end-of-buffer) 'dired-jump-to-bottom))
+  (define-key dired-mode-map (vector 'remap 'end-of-buffer) 'dired-jump-to-bottom)
+  (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
+  (define-key dired-mode-map (kbd "C-x C-j") (lambda () (interactive) (find-alternate-file "..")))
+  )
 
 (use-package avy
   :ensure t
