@@ -44,7 +44,7 @@
           (bg-line-number-active unspecified)
           ;; Make the current line of `hl-line-mode' a fine shade of
           ;; gray (though also see my `lin' package).
-          (bg-hl-line bg-dim)
+          ;;(bg-hl-line bg-dim)
           ;; Make the region have a cyan-green background with no
           ;; specific foreground (use foreground of underlying text).
           ;; "bg-sage" refers to Salvia officinalis, else the common
@@ -642,9 +642,11 @@
 
 (use-package multiple-cursors
   :ensure t
-  ;; TODO: We can check other useful functions of this module.
   :bind (
-	 ("C-c c" . mc/edit-lines)))
+	 ("C-c c" . mc/edit-lines)
+	 ("C->"   . mc/mark-next-like-this-word)
+	 ("C-<"   . mc/mark-previous-like-this-word)
+	 ("C-c a" . mc/mark-all-like-this)))
 
 ;; make-mark-visible.el
 (use-package make-mark-visible
@@ -1034,3 +1036,4 @@ targets."
 ;; M-x ielm interactively evaluate emacs lisp expressions
 
 ;; C-x C-q (read-only-mode)
+
