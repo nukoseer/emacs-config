@@ -19,7 +19,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move)))
+   '(haskell-mode multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move)))
 
 (use-package modus-themes
   :ensure t
@@ -91,10 +91,11 @@
        `(window-divider ((t :foreground ,bg :background ,bg)))
        `(window-divider-first-pixel ((t :foreground ,(face-background 'mode-line))))
        `(window-divider-last-pixel ((t :foreground ,(face-background 'mode-line))))
+       `(ansi-color-bright-white ((t :background "gray65" :foreground "gray65")))
        )))
   
   (advice-add 'enable-theme :after #'run-after-enable-theme-hook)
-    
+
   ;; Load the theme of your choice.
   (load-theme 'modus-operandi)
 
@@ -180,7 +181,7 @@
   (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
   ;; set default directory to c++ folder
-  (setq default-directory "C:/Programming")
+  (setq default-directory "C:/Programming/")
 
   ;; disable auto save mode
   (setq auto-save-default nil)
@@ -277,7 +278,8 @@
 	 ("<f1>"      . build)
          ("<f2>"      . run)
          ("<f3>"      . generate)
-	 ("C-x w"     . window-toggle-side-windows))
+	 ("C-x w"     . window-toggle-side-windows)
+	 ("C-M-,"     . mark-sexp))
 
   :config
 
@@ -391,7 +393,7 @@
   ;; Introduce a bottom side window that catches
   ;; compilations, greps etc.
   (add-to-list 'display-buffer-alist
-	       `(,(rx (| "*compilation*" "*grep*" "*ripgrep*" "*rg*"))
+	       `(,(rx (| "*compilation*" "*grep*" "*ripgrep*" "*rg*" "*haskell*"))
 		 (display-buffer-in-side-window)
 		 (side . bottom)
 		 (slot . 0)
@@ -560,16 +562,17 @@
   (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
   
   (add-hook 'c-mode-common-hook '(lambda ()
+				   (local-set-key (kbd "<C-tab>") #'c-indent-line-or-region)
 				   (font-lock-add-keywords nil
 							   '(("\\<\\(global_variable\\)\\>" . font-lock-keyword-face)
 							     ("\\<\\(internal\\)\\>" . font-lock-keyword-face)
 							     ("\\<\\(local_persist\\)\\>" . font-lock-keyword-face)
 							     ("\\(\\w+\\)\\s-*\("  . font-lock-function-name-face)
-							   ))))
+							     ))))
 
   (add-hook 'prog-mode-hook '(lambda ()
 			       (local-set-key (kbd "<tab>") #'dabbrev-expand)
-			       (local-set-key (kbd "<C-tab>") #'c-indent-line-or-region)
+			       
 			       (local-set-key (kbd "C-c C-c") #'comment-region)
 			       (local-set-key (kbd "C-c C-v") #'uncomment-region)
 			       ))
@@ -983,6 +986,16 @@ targets."
   (setq ediff-window-setup-function 'ediff-setup-windows-plain)
   (setq ediff-split-window-function 'split-window-horizontally)
   (setq ediff-diff-options "-w"))
+
+(use-package haskell-mode
+  :ensure t
+  :config
+  (setq haskell-interactive-popup-errors nil)
+  
+  :bind
+  (("<C-tab>" . haskell-indentation-indent-line)  
+   ("C-c C-l" . haskell-process-load-file))
+  )
 
 (setq gc-cons-threshold 16777216 ; 16mb
       gc-cons-percentage 0.1)
