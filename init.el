@@ -97,7 +97,7 @@
   (advice-add 'enable-theme :after #'run-after-enable-theme-hook)
 
   ;; Load the theme of your choice.
-  (load-theme 'modus-operandi)
+  (load-theme 'modus-vivendi)
 
   )
 
@@ -279,8 +279,12 @@
          ("<f2>"      . run)
          ("<f3>"      . generate)
 	 ("C-x w"     . window-toggle-side-windows)
-	 ("C-M-,"     . mark-sexp))
-
+	 ("C-,"       . mark-sexp)
+	 ("C-x j"     . next-buffer)
+	 ("C-x l"     . previous-buffer)
+	 ("M-n"       . forward-paragraph)
+	 ("M-p"       . backward-paragraph))
+  
   :config
 
   (menu-bar-mode 0)
@@ -393,7 +397,7 @@
   ;; Introduce a bottom side window that catches
   ;; compilations, greps etc.
   (add-to-list 'display-buffer-alist
-	       `(,(rx (| "*compilation*" "*grep*" "*ripgrep*" "*rg*" "*haskell*"))
+	       `(,(rx (| "*compilation*" "*grep*" "*ripgrep*" "*rg*" "*haskell*" "*Async Shell Command*"))
 		 (display-buffer-in-side-window)
 		 (side . bottom)
 		 (slot . 0)
@@ -487,8 +491,8 @@
 
   (defvar buffer-navigation-repeat-map
     (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "<right>") 'next-buffer)
-      (define-key map (kbd "<left>") 'previous-buffer)
+      (define-key map (kbd "j") 'next-buffer)
+      (define-key map (kbd "l") 'previous-buffer)
       map)
     "Keymap to repeat `next-buffer' and `previous-buffer'.  Used in `repeat-mode'.")
   (put 'next-buffer 'repeat-map 'buffer-navigation-repeat-map)
@@ -610,6 +614,7 @@
 (use-package smartscan
   :ensure t
   :config
+  ;; Change smartscan-symbol-go-forward/backward to C-M-n/p in smartscan.elf and byte-compile-file
   (global-smartscan-mode t))
 
 (use-package buffer-move
@@ -901,7 +906,8 @@
 
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
-   ("C-," . embark-dwim))        ;; good alternative: M-.
+   ;;("C-," . embark-dwim)      ;; good alternative: M-.
+   )        
   ;;("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
 
   :init
