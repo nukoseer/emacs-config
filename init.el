@@ -181,7 +181,7 @@
   (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
   ;; set default directory to c++ folder
-  (setq default-directory "C:/Programming/")
+  (setq default-directory "C:/")
 
   ;; disable auto save mode
   (setq auto-save-default nil)
@@ -280,8 +280,8 @@
          ("<f3>"      . generate)
 	 ("C-x w"     . window-toggle-side-windows)
 	 ("C-,"       . mark-sexp)
-	 ("C-x j"     . next-buffer)
-	 ("C-x l"     . previous-buffer)
+	 ("C-x j"     . previous-buffer)
+	 ("C-x l"     . next-buffer)
 	 ("M-n"       . forward-paragraph)
 	 ("M-p"       . backward-paragraph))
   
@@ -627,12 +627,14 @@
 
 (use-package dumb-jump
   :ensure t
+  :after consult
   :config
 
   (setq dumb-jump-force-searcher 'rg)
   (setq dumb-jump-rg-search-args "--pcre2 -j 8 -H --no-heading -n -S")
   (setq dumb-jump-default-project "C:/Programming/") ;; Project specific
   (add-hook 'xref-backend-functions 'dumb-jump-xref-activate))
+  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
 
 (use-package tramp
   :defer 1
@@ -720,7 +722,27 @@
   :ensure t
   :defer t)
 
+;; Enable vertico
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode)
+
+  ;; Different scroll margin
+  ;; (setq vertico-scroll-margin 0)
+
+  ;; Show more candidates
+  ;; (setq vertico-count 20)
+
+  ;; Grow and shrink the Vertico minibuffer
+  ;; (setq vertico-resize t)
+
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  ;; (setq vertico-cycle t)
+  )
+
 (use-package projectile
+  :defer 0.2
   :ensure t
   :config
   (projectile-mode)
@@ -744,25 +766,6 @@
 	 ("M-s 4 f" . projectile-find-file-other-window)
 	 ("C-x o" . projectile-find-other-file)
 	 ("C-x 4 o" . projectile-find-other-file-other-window)))
-
-;; Enable vertico
-(use-package vertico
-  :ensure t
-  :init
-  (vertico-mode)
-
-  ;; Different scroll margin
-  ;; (setq vertico-scroll-margin 0)
-
-  ;; Show more candidates
-  ;; (setq vertico-count 20)
-
-  ;; Grow and shrink the Vertico minibuffer
-  ;; (setq vertico-resize t)
-
-  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  ;; (setq vertico-cycle t)
-  )
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
@@ -981,6 +984,13 @@ targets."
   :ensure t ; only need to install it, embark loads it after consult if found
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package consult-dir
+  :ensure t
+  :bind (("C-x C-d" . consult-dir)
+         :map vertico-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file)))
 
 (use-package ediff
   :defer t
