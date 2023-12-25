@@ -27,7 +27,8 @@
  ;; If there is more than one, they won't work right.
  ;; Make the active mode line have a pseudo 3D effect (this assumes
  ;; you are using the default mode line and not an extra package).
- '(mode-line ((t :box (:style released-button)))))
+ `(mode-line ((t :box (:style released-button))))
+ `(font-lock-variable-name-face ((t :foreground ,(face-foreground 'default)))))
 
 ;; A few more useful configurations...
 (use-package emacs
@@ -173,7 +174,8 @@
 					     ;;If we don't put this piece of code here emacsclient shows window-divider completely black.
 					     (set-face-attribute 'window-divider nil :foreground (face-background 'default) :background (face-background 'default))
 					     (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
-					     (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))))
+					     (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))
+					     (set-face-attribute 'font-lock-variable-name-face nil :foreground (face-foreground 'default))))
   
   (defun my-load-all-in-directory (dir)
     "`load' all elisp libraries in directory DIR which are not already loaded."
