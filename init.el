@@ -19,91 +19,24 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(haskell-mode multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move)))
+   '(consult-dir haskell-mode multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move)))
+(custom-set-faces
+ ;; Make the active mode line have a pseudo 3D effect (this assumes
+ ;; you are using the default mode line and not an extra package).
+ '(mode-line ((t :box (:style released-button)))))
 
-(use-package modus-themes
-  :ensure t
-  :config
-
-  (setq modus-themes-custom-auto-reload nil
-	modus-themes-to-toggle '(modus-operandi modus-vivendi)
-	modus-themes-italic-constructs t
-	modus-themes-bold-constructs nil
-	modus-themes-completions '((t . (extrabold)))
-	modus-themes-prompts nil)
-
-  (setq modus-themes-common-palette-overrides
-	'((cursor magenta-cooler)
-          ;; Make the fringe invisible.
-          (fringe unspecified)
-          ;; Make line numbers less intense and add a shade of cyan
-          ;; for the current line number.
-          (fg-line-number-inactive "gray50")
-          (fg-line-number-active cyan-cooler)
-          (bg-line-number-inactive unspecified)
-          (bg-line-number-active unspecified)
-          ;; Make the current line of `hl-line-mode' a fine shade of
-          ;; gray (though also see my `lin' package).
-          ;;(bg-hl-line bg-dim)
-          ;; Make the region have a cyan-green background with no
-          ;; specific foreground (use foreground of underlying text).
-          ;; "bg-sage" refers to Salvia officinalis, else the common
-          ;; sage.
-          (bg-region bg-sage)
-          (fg-region unspecified)
-          ;; Make matching parentheses a shade of magenta.  It
-          ;; complements the region nicely.
-          (bg-paren-match bg-magenta-intense)
-          ;; Make the active mode line a fine shade of lavender
-          ;; (purple) and tone down the gray of the inactive mode
-          ;; lines.
-          (bg-mode-line-active bg-lavender)
-          (border-mode-line-active bg-lavender)
-
-          (bg-mode-line-inactive bg-dim)
-          (border-mode-line-inactive bg-inactive)
-          ;; Make the prompts a shade of magenta, to fit in nicely with
-          ;; the overall blue-cyan-purple style of the other overrides.
-          ;; Add a nuanced background as well.
-          (bg-prompt bg-magenta-nuanced)
-          (fg-prompt magenta-cooler)
-          ;; Tweak some more constructs for stylistic constistency.
-          (name blue-warmer)
-          (identifier magenta-faint)
-          (keybind magenta-cooler)
-          (accent-0 magenta-cooler)
-          (accent-1 cyan-cooler)
-          (accent-2 blue-warmer)
-          (accent-3 red-cooler)))
-
+;; A few more useful configurations...
+(use-package emacs
+  :init
   (defvar after-enable-theme-hook nil
     "Normal hook run after enabling a theme." )
   
   (defun run-after-enable-theme-hook (&rest _args)
     "Run `after-enable-theme-hook'."
     (run-hooks 'after-enable-theme-hook)
-    (let ((bg (face-background 'default)))
-      (custom-set-faces
-       ;; Make the active mode line have a pseudo 3D effect (this assumes
-       ;; you are using the default mode line and not an extra package).
-       '(mode-line ((t :box (:style released-button))))
-       `(font-lock-variable-name-face ((t :foreground ,(face-foreground 'default))))
-       `(window-divider ((t :foreground ,bg :background ,bg)))
-       `(window-divider-first-pixel ((t :foreground ,(face-background 'mode-line))))
-       `(window-divider-last-pixel ((t :foreground ,(face-background 'mode-line))))
-       `(ansi-color-bright-white ((t :background "gray65" :foreground "gray65")))
-       )))
+    )
   
   (advice-add 'enable-theme :after #'run-after-enable-theme-hook)
-
-  ;; Load the theme of your choice.
-  (load-theme 'modus-vivendi)
-
-  )
-
-;; A few more useful configurations...
-(use-package emacs
-  :init
   
   (add-hook 'emacs-startup-hook '(lambda ()
 				   (message "Emacs ready in %s with %d garbage collections."
@@ -233,14 +166,11 @@
 					     (startup-screen)
 					     ;; This is duplicated version of the window-divider
 					     ;; face settings from use-package modus-themes.
-					     ;; If we don't put this piece of code here emacsclient shows window-divider completely black.
-					     (let ((bg (face-background 'default)))
-					       (custom-set-faces
-						`(window-divider ((t :foreground ,bg :background ,bg)))
-						`(window-divider-first-pixel ((t :foreground ,(face-background 'mode-line))))
-						`(window-divider-last-pixel ((t :foreground ,(face-background 'mode-line))))))
-					     ))
-
+					     ;;If we don't put this piece of code here emacsclient shows window-divider completely black.
+					     (set-face-attribute 'window-divider nil :foreground (face-background 'default) :background (face-background 'default))
+					     (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
+					     (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))))
+  
   (defun my-load-all-in-directory (dir)
     "`load' all elisp libraries in directory DIR which are not already loaded."
     ;;  (interactive "D")
@@ -583,6 +513,68 @@
 
   (add-hook 'asm-mode-hook '(lambda ()
 			      (local-unset-key (kbd ";")))))
+
+(use-package modus-themes
+  :ensure t
+  :config
+  (setq modus-themes-custom-auto-reload nil
+	modus-themes-to-toggle '(modus-operandi modus-vivendi)
+	modus-themes-italic-constructs t
+	modus-themes-bold-constructs nil
+	modus-themes-completions '((t . (extrabold)))
+	modus-themes-prompts nil)
+
+  (setq modus-themes-common-palette-overrides
+	'((cursor magenta-cooler)
+          ;; Make the fringe invisible.
+          (fringe unspecified)
+          ;; Make line numbers less intense and add a shade of cyan
+          ;; for the current line number.
+          (fg-line-number-inactive "gray50")
+          (fg-line-number-active cyan-cooler)
+          (bg-line-number-inactive unspecified)
+          (bg-line-number-active unspecified)
+          ;; Make the current line of `hl-line-mode' a fine shade of
+          ;; gray (though also see my `lin' package).
+          ;;(bg-hl-line bg-dim)
+          ;; Make the region have a cyan-green background with no
+          ;; specific foreground (use foreground of underlying text).
+          ;; "bg-sage" refers to Salvia officinalis, else the common
+          ;; sage.
+          (bg-region bg-sage)
+          (fg-region unspecified)
+          ;; Make matching parentheses a shade of magenta.  It
+          ;; complements the region nicely.
+          (bg-paren-match bg-magenta-intense)
+          ;; Make the active mode line a fine shade of lavender
+          ;; (purple) and tone down the gray of the inactive mode
+          ;; lines.
+          (bg-mode-line-active bg-lavender)
+          (border-mode-line-active bg-lavender)
+
+          (bg-mode-line-inactive bg-dim)
+          (border-mode-line-inactive bg-inactive)
+          ;; Make the prompts a shade of magenta, to fit in nicely with
+          ;; the overall blue-cyan-purple style of the other overrides.
+          ;; Add a nuanced background as well.
+          (bg-prompt bg-magenta-nuanced)
+          (fg-prompt magenta-cooler)
+          ;; Tweak some more constructs for stylistic constistency.
+          (name blue-warmer)
+          (identifier magenta-faint)
+          (keybind magenta-cooler)
+          (accent-0 magenta-cooler)
+          (accent-1 cyan-cooler)
+          (accent-2 blue-warmer)
+          (accent-3 red-cooler)))
+
+  ;; Load the theme of your choice.
+  (load-theme 'modus-operandi)
+
+  (set-face-attribute 'window-divider nil :foreground (face-background 'default) :background (face-background 'default))
+  (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
+  (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))
+  )
 
 (use-package gcmh
   :ensure t
