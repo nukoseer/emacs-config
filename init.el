@@ -19,8 +19,12 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(consult-dir haskell-mode multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move)))
+   '(consult-dir multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move)))
 (custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  ;; Make the active mode line have a pseudo 3D effect (this assumes
  ;; you are using the default mode line and not an extra package).
  '(mode-line ((t :box (:style released-button)))))
@@ -209,6 +213,7 @@
          ("<f2>"      . run)
          ("<f3>"      . generate)
 	 ("C-x w"     . window-toggle-side-windows)
+	 ("<escape>"     . window-toggle-side-windows)
 	 ("C-,"       . mark-sexp)
 	 ("C-x j"     . previous-buffer)
 	 ("C-x l"     . next-buffer)
@@ -994,16 +999,6 @@ targets."
   (setq ediff-window-setup-function 'ediff-setup-windows-plain)
   (setq ediff-split-window-function 'split-window-horizontally)
   (setq ediff-diff-options "-w"))
-
-(use-package haskell-mode
-  :ensure t
-  :config
-  (setq haskell-interactive-popup-errors nil)
-  
-  :bind
-  (("<C-tab>" . haskell-indentation-indent-line)  
-   ("C-c C-l" . haskell-process-load-file))
-  )
 
 (setq gc-cons-threshold 16777216 ; 16mb
       gc-cons-percentage 0.1)
