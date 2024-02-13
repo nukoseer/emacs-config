@@ -19,16 +19,14 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(consult-dir multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move)))
+   '(fancy-dabbrev consult-dir multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- ;; Make the active mode line have a pseudo 3D effect (this assumes
- ;; you are using the default mode line and not an extra package).
- `(mode-line ((t :box (:style released-button))))
- `(font-lock-variable-name-face ((t :foreground ,(face-foreground 'default)))))
+ '(ansi-color-bright-white ((t :background "gray55" :foreground "gray55")))
+  '(mode-line ((t :box (:style released-button)))))
 
 ;; A few more useful configurations...
 (use-package emacs
@@ -49,9 +47,13 @@
 						    (float-time
 						     (time-subtract after-init-time before-init-time)))
 					    gcs-done)))
-  
+
+  (setq dabbrev-case-distinction nil)
+  (setq dabbrev-case-fold-search nil)
+  (setq dabbrev-case-replace nil)
+
   (add-hook 'emacs-lisp-mode-hook '(lambda ()
-				     (local-set-key (kbd "<tab>") #'dabbrev-expand)
+				     (local-set-key (kbd "<tab>") #'fancy-dabbrev-expand)
 			             (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
 				     ))
   ;; theme
@@ -175,7 +177,12 @@
 					     (set-face-attribute 'window-divider nil :foreground (face-background 'default) :background (face-background 'default))
 					     (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
 					     (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))
-					     (set-face-attribute 'font-lock-variable-name-face nil :foreground (face-foreground 'default))))
+					     (set-face-attribute 'font-lock-variable-name-face nil :foreground (face-foreground 'default))
+					     
+					     (set-face-attribute 'fancy-dabbrev-preview-face nil :background (face-background 'hl-line) :foreground (face-foreground 'default))
+					     (set-face-attribute 'fancy-dabbrev-menu-face nil :background (face-background 'default) :foreground (face-foreground 'default))
+					     (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face))
+					     ))
   
   (defun my-load-all-in-directory (dir)
     "`load' all elisp libraries in directory DIR which are not already loaded."
@@ -244,6 +251,16 @@
   ;;(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
   ;;(load-theme 'nano t)
 
+  (defun kill-other-buffers ()
+    "Kill all buffers"
+    (interactive)
+    (mapc 'kill-buffer (cl-remove-if
+			(lambda (x)
+                          (or
+                           ;; (eq x (current-buffer)) 
+                           (member (buffer-name x) '("*Messages*" "*scratch*" "init.el"))))
+			(buffer-list))))
+  
   ;; c / c++ visual studio style code indentation
   (defun my-c-mode-common-hook ()
     ;; my customizations for all of c-mode, c++-mode, objc-mode, java-mode
@@ -340,7 +357,7 @@
 		 (slot . 0)
 		 (window-parameters . ((no-delete-other-windows . t)))
 		 (window-height . 0.25)))
-  
+
   (defun add-todo ()
     (interactive)
     (insert "// TODO: "))
@@ -460,7 +477,7 @@
        (grep-compute-defaults)
        (if grep-find-command
 	   (list (read-shell-command "Run find (like this): "
-                                     '("fd \"\" -x \"%HOMEDRIVE%%HOMEPATH%\\.emacs.d\\concat.bat\" {}" . 5) 'grep-find-history))
+                                     '("fd \"\" -x \"%APPDATA%\\.emacs.d\\concat.bat\" {}" . 5) 'grep-find-history))
 	 ;; No default was set
 	 (read-string
           "compile.el: No `grep-find-command' command available. Press RET.")
@@ -512,7 +529,7 @@
 							     ))))
 
   (add-hook 'prog-mode-hook '(lambda ()
-			       (local-set-key (kbd "<tab>") #'dabbrev-expand)
+			       (local-set-key (kbd "<tab>") #'fancy-dabbrev-expand)
 			       
 			       (local-set-key (kbd "C-c C-c") #'comment-region)
 			       (local-set-key (kbd "C-c C-v") #'uncomment-region)
@@ -576,11 +593,12 @@
           (accent-3 red-cooler)))
 
   ;; Load the theme of your choice.
-  (load-theme 'modus-operandi)
+  (load-theme 'modus-vivendi)
 
   (set-face-attribute 'window-divider nil :foreground (face-background 'default) :background (face-background 'default))
   (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
   (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))
+  (set-face-attribute 'font-lock-variable-name-face nil :foreground (face-foreground 'default))
   )
 
 (use-package gcmh
@@ -894,6 +912,8 @@
   ;; Optionally configure a different project root function.
   (autoload 'projectile-project-root "projectile")
   (setq consult-project-function (lambda (_) (projectile-project-root)))
+
+  (setq consult-find-args "fd -x .")
   )
 
 (use-package which-key
@@ -982,7 +1002,8 @@ targets."
 (use-package embark-consult
   :ensure t ; only need to install it, embark loads it after consult if found
   :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
+  (embark-collect-mode . consult-preview-at-point-mode)
+  )
 
 (use-package consult-dir
   :ensure t
@@ -1001,6 +1022,16 @@ targets."
   (setq ediff-window-setup-function 'ediff-setup-windows-plain)
   (setq ediff-split-window-function 'split-window-horizontally)
   (setq ediff-diff-options "-w"))
+
+(use-package fancy-dabbrev
+  :hook (prog-mode . fancy-dabbrev-mode)
+  :config
+  (setq fancy-dabbrev-preview-delay 0.1)
+  
+  (set-face-attribute 'fancy-dabbrev-preview-face nil :background (face-background 'hl-line) :foreground (face-foreground 'default))
+  (set-face-attribute 'fancy-dabbrev-menu-face nil :background (face-background 'default) :foreground (face-foreground 'default))
+  (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face))
+  )
 
 (setq gc-cons-threshold 16777216 ; 16mb
       gc-cons-percentage 0.1)
@@ -1054,4 +1085,3 @@ targets."
 ;; M-x ielm interactively evaluate emacs lisp expressions
 
 ;; C-x C-q (read-only-mode)
-
