@@ -210,7 +210,7 @@
 	 ("M-m"       . beginning-of-visual-line)
 	 ("M-h"       . backward-kill-word)
 	 ("C-h"       . backward-delete-char)
-	 ("C-?"       . help-command)
+	 ("C-\\"      . help-command)
 	 ("M-<right>" . enlarge-window-horizontally)
 	 ("M-<left>"  . shrink-window-horizontally)
 	 ("C-x C-z"   . grep-fd)
@@ -477,7 +477,7 @@
        (grep-compute-defaults)
        (if grep-find-command
 	   (list (read-shell-command "Run find (like this): "
-                                     '("fd \"\" -x \"%APPDATA%\\.emacs.d\\concat.bat\" {}" . 5) 'grep-find-history))
+				     `(,(format "fd \"\" %S -x \"\"%APPDATA%\\.emacs.d\\concat.bat\" {}" default-directory) . 5) 'grep-find-history))
 	 ;; No default was set
 	 (read-string
           "compile.el: No `grep-find-command' command available. Press RET.")
@@ -832,6 +832,7 @@
          ("M-s L" . consult-line-multi)
          ("M-s k" . consult-keep-lines)
          ("M-s u" . consult-focus-lines)
+	 ("M-s z" . consult-find)
          ;; Isearch integration
          ("M-s e" . consult-isearch-history)
          :map isearch-mode-map
@@ -1024,6 +1025,7 @@ targets."
   (setq ediff-diff-options "-w"))
 
 (use-package fancy-dabbrev
+  :ensure t
   :hook (prog-mode . fancy-dabbrev-mode)
   :config
   (setq fancy-dabbrev-preview-delay 0.1)
