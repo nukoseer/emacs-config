@@ -654,7 +654,7 @@
   (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
 
 (use-package tramp
-  :defer 1
+  :defer
   :config
   (setq tramp-default-method "plink")
   (setq remote-file-name-inhibit-cache nil)
@@ -662,8 +662,9 @@
   	(format "%s\\|%s"
                 vc-ignore-dir-regexp
                 tramp-file-name-regexp))
-  (setq tramp-verbose 1)
+  (setq tramp-verbose 0)
 
+  ;;(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   ;;(customize-set-variable 'tramp-syntax 'simplified)
   )
 
@@ -759,11 +760,14 @@
   )
 
 (use-package projectile
-  :defer 0.2
+  :defer
   :ensure t
+  :init
+  (require 'tramp)
   :config
   (projectile-mode)
-  (setq projectile-generic-command "fd . -0 --type f -print0")
+  (setq projectile-generic-command "fd . -0 --type f --color=never --full-path --strip-cwd-prefix")
+  (setq projectile-git-fd-args "-H -0 -E .git -tf --strip-cwd-prefix --color=never")
   
   (add-to-list 'projectile-globally-ignored-directories "*.svg")
 
@@ -774,6 +778,11 @@
     :files "*.{c,cpp,h}")
 
   (advice-add 'projectile-ripgrep :override #'rg-c/cpp-project)
+  (setq-default projectile-indexing-method 'alien)
+  
+  ;;(advice-add 'projectile-project-root :before-while
+  ;;(lambda (&optional dir)
+    ;;(not (file-remote-p (or dir default-directory)))))
 
   ;; default was C-c p
   :bind-keymap (("C-x p" . projectile-command-map))
