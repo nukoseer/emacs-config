@@ -251,15 +251,22 @@
   ;;(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
   ;;(load-theme 'nano t)
 
-  (defun kill-other-buffers ()
-    "Kill all buffers"
+  (defun reset-emacs ()
+    "Reset emacs."
     (interactive)
     (mapc 'kill-buffer (cl-remove-if
 			(lambda (x)
                           (or
                            ;; (eq x (current-buffer)) 
                            (member (buffer-name x) '("*Messages*" "*scratch*" "init.el"))))
-			(buffer-list))))
+			(buffer-list)))
+    (unlock-compilation-directory)
+    (delete-other-windows)
+    (switch-to-buffer "*scratch*")
+    (split-window-right)
+    (other-window 1)
+    (find-file "~/.emacs.d/init.el")
+    (other-window 1))
   
   ;; c / c++ visual studio style code indentation
   (defun my-c-mode-common-hook ()
