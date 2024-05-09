@@ -487,7 +487,7 @@
 	       (list (read-shell-command "Run find (like this): "
 					 '("fd \"\" . -x \"echo\" {}:1:" . 5) 'grep-find-history))
 	       (list (read-shell-command "Run find (like this): "
-					 `(,(format "fd \"\" %S -x \"echo\" {}:1:" default-directory) . 5) 'grep-find-history)))
+					 `(,(format "fd \"\" %S -x cmd /C echo \"{}:1:\"" default-directory) . 5) 'grep-find-history)))
 	 ;; No default was set
 	 (read-string
           "compile.el: No `grep-find-command' command available. Press RET.")
