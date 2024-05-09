@@ -484,7 +484,7 @@
        (grep-compute-defaults)
        (if grep-find-command
 	   (list (read-shell-command "Run find (like this): "
-				     `(,(format "fd \"\" %S -x \"\"%APPDATA%\\.emacs.d\\concat.bat\" {}" default-directory) . 5) 'grep-find-history))
+				     `(,(format "fd \"\" %S -x \"%%HOME%%\\.emacs.d\\concat.bat\" {}" default-directory) . 5) 'grep-find-history))
 	 ;; No default was set
 	 (read-string
           "compile.el: No `grep-find-command' command available. Press RET.")
