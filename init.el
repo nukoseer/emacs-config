@@ -19,14 +19,25 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(fancy-dabbrev consult-dir multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move)))
+   '(fancy-dabbrev eglot eglot-booster consult-dir multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move))
+ '(custom-safe-themes
+   '("d015f7295925398145c42285e2ea4bb438d449d36e2b10ba0650024862ec93a8"
+     "62097dbc0924e2b42f9eaeead73fc2c12cf7b579c214bbb5e755d4f2391ffc2f"
+     "bc2936e8cd9c3e67623e76672ddf53411e60723e2ed0cad8b4ca59b5a2d80bbf"
+     "6a784261d7e9bb651d6b4867b8f3c06ba7fa255a869a0a44ac35290e94776d38"
+     "f4157511d5d4a31766a01ce6aeef7329a39afbfa61f6f6a96a29bb97dc9e00b1"
+     "ba4ab079778624e2eadbdc5d9345e6ada531dc3febeb24d257e6d31d5ed02577"
+     "ccdc42b444da0b62c25850da75f59186319ee22ddfd153ffc9f7eb4e59652fc9"
+     "7887cf8b470098657395502e16809523b629249060d61607c2225d2ef2ad59f5"
+     default))
+ )
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(ansi-color-bright-white ((t :background "gray55" :foreground "gray55")))
-  '(mode-line ((t :box (:style released-button)))))
+ '(mode-line ((t :box (:style released-button)))))
 
 ;; A few more useful configurations...
 (use-package emacs
@@ -101,24 +112,24 @@
 		 '(left-fringe  . 12)
 		 '(right-fringe . 12))))
 
-  ;; force emacs for utf-8
-  (set-language-environment "UTF-8")
-  (prefer-coding-system 'utf-8)
-  ;;(modify-coding-system-alist 'file "" 'utf-8)
-  (set-default-coding-systems 'utf-8)
-  (set-terminal-coding-system 'utf-8)
-  (set-keyboard-coding-system 'utf-8)
-  (setq coding-system-for-read 'utf-8)
-  (setq coding-system-for-write 'utf-8)
-  (setq default-buffer-file-coding-system 'utf-8) 
-  ;; backwards compatibility as default-buffer-file-coding-system
-  ;; is deprecated in 23.2.
-  (if (boundp 'buffer-file-coding-system)
-      (setq-default buffer-file-coding-system 'utf-8)
-    (setq default-buffer-file-coding-system 'utf-8))
-
-  ;; Treat clipboard input as UTF-8 string first; compound text next, etc.
-  (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
+  ;;;; force emacs for utf-8
+  ;;(set-language-environment "UTF-8")
+  ;;(prefer-coding-system 'utf-8)
+  ;;;;(modify-coding-system-alist 'file "" 'utf-8)
+  ;;(set-default-coding-systems 'utf-8)
+  ;;(set-terminal-coding-system 'utf-8)
+  ;;(set-keyboard-coding-system 'utf-8)
+  ;;(setq coding-system-for-read 'utf-8)
+  ;;(setq coding-system-for-write 'utf-8)
+  ;;(setq default-buffer-file-coding-system 'utf-8) 
+  ;;;; backwards compatibility as default-buffer-file-coding-system
+  ;;;; is deprecated in 23.2.
+  ;;(if (boundp 'buffer-file-coding-system)
+  ;;    (setq-default buffer-file-coding-system 'utf-8)
+  ;;  (setq default-buffer-file-coding-system 'utf-8))
+  ;;
+  ;;;; Treat clipboard input as UTF-8 string first; compound text next, etc.
+  ;;(setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
   ;; set default directory to c++ folder
   (setq default-directory "C:/")
@@ -393,13 +404,14 @@
   (modify-face 'font-lock-study-face "Orange" nil nil t nil nil nil nil)
 
   ;; find project root, build, run
-  (setq project-base "build.bat")
+  (setq project-base-bat "build.bat")
+  (setq project-base-sh  "./build.sh")
   (setq compilation-directory-locked nil)
 
   (defun find-project-directory-recursive ()
     "Recursively search for a makefile."
     (interactive)
-    (if (file-exists-p project-base) t
+    (if (or (file-exists-p project-base-bat) (file-exists-p project-base-sh)) t
       (cd "../")
       (find-project-directory-recursive)))
 
@@ -429,7 +441,10 @@
   (defun build ()
     "Make the current build."
     (interactive)
-    (if (find-project-directory) (compile project-base))
+    (if (find-project-directory)
+	(if (file-exists-p project-base-bat)
+	    (compile project-base-bat)
+	  (compile project-base-sh)))
     (other-window 1))
 
   (defun run ()
@@ -527,6 +542,8 @@
   (put 'downcase-region 'disabled nil)
   (put 'upcase-region 'disabled nil)
 
+  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+
   (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
   
   (add-hook 'c-mode-common-hook '(lambda ()
@@ -540,7 +557,6 @@
 
   (add-hook 'prog-mode-hook '(lambda ()
 			       (local-set-key (kbd "<tab>") #'fancy-dabbrev-expand)
-			       
 			       (local-set-key (kbd "C-c C-c") #'comment-region)
 			       (local-set-key (kbd "C-c C-v") #'uncomment-region)
 			       ))
@@ -660,11 +676,11 @@
   (setq dumb-jump-force-searcher 'rg)
   (setq dumb-jump-rg-search-args "--pcre2 -j 8 -H --no-heading -n -S")
   (setq dumb-jump-default-project "C:/Programming/") ;; Project specific
+  
   (add-hook 'xref-backend-functions 'dumb-jump-xref-activate))
-  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
 
 (use-package tramp
-  :defer
+  :ensure t
   :config
   (setq tramp-default-method "plink")
   (setq remote-file-name-inhibit-cache nil)
@@ -703,9 +719,8 @@
 (use-package dired
   :init
   (setq dired-dwim-target t)
-
-  :hook (dired-mode . dired-omit-mode)
-
+  :hook
+  (dired-mode . dired-omit-mode)
   :config
   (put 'dired-find-alternate-file 'disabled nil)
   
@@ -721,17 +736,17 @@
 
   (define-key dired-mode-map (vector 'remap 'beginning-of-buffer) 'dired-back-to-top)
   (define-key dired-mode-map (vector 'remap 'end-of-buffer) 'dired-jump-to-bottom)
+  (define-key dired-mode-map (vector 'remap 'beginning-of-defun) 'dired-back-to-top)
+  (define-key dired-mode-map (vector 'remap 'end-of-defun) 'dired-jump-to-bottom)
   (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
   (define-key dired-mode-map (kbd "C-x C-j") (lambda () (interactive) (find-alternate-file "..")))
   )
 
 (use-package avy
   :ensure t
-  
   :bind (
 	 ("M-j" . avy-goto-char-timer))
   :config
-
   (setq avy-timeout-seconds 0.3)
   (setq avy-single-candidate-jump nil)
 
@@ -747,8 +762,11 @@
   (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark))
 
 (use-package rg
-  :ensure t
-  :defer t)
+  :defer t
+  :config
+  ;; We need to add gnu/linux to rg.el:311 as a system-type because
+  ;; without "." rg wasn't working properly under WSL. 
+  (setq rg-executable "rg"))
 
 ;; Enable vertico
 (use-package vertico
@@ -770,12 +788,12 @@
   )
 
 (use-package projectile
-  :defer
   :ensure t
+  :after tramp
   :init
-  (require 'tramp)
+  ;;(require 'tramp)
+  (projectile-mode t)
   :config
-  (projectile-mode)
   (setq projectile-generic-command "fd . -0 --type f --color=never --full-path --strip-cwd-prefix")
   (setq projectile-git-fd-args "-H -0 -E .git -tf --strip-cwd-prefix --color=never")
   
@@ -824,10 +842,9 @@
 
   ;; The :init configuration is always executed (Not lazy!)
   :init
-
   ;; Must be in the :init section of use-package such that the mode gets
   ;; enabled right away. Note that this forces loading the package.
-  (marginalia-mode))
+  (marginalia-mode t))
 
 (use-package consult
   :ensure t
@@ -945,15 +962,13 @@
 
 (use-package embark
   :ensure t
-
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ;;("C-," . embark-dwim)      ;; good alternative: M-.
-   )        
+   )
   ;;("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
 
   :init
-
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
 
@@ -1052,6 +1067,83 @@ targets."
   (set-face-attribute 'fancy-dabbrev-preview-face nil :background (face-background 'hl-line) :foreground (face-foreground 'default))
   (set-face-attribute 'fancy-dabbrev-menu-face nil :background (face-background 'default) :foreground (face-foreground 'default))
   (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face))
+  )
+
+(use-package eglot
+  :hook
+  (c-mode . eglot-ensure)
+  (c++-mode . eglot-ensure)
+  (csharp-mode . eglot-ensure)
+  :config
+  (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+  (add-to-list 'eglot-server-programs '(csharp-mode . ("omnisharp" "-lsp")))
+  (add-to-list 'eglot-stay-out-of 'eldoc)
+  (add-to-list 'eglot-stay-out-of 'flymake)
+  (setf (plist-get eglot-events-buffer-config :size) 0)
+  (setq track-changes-record-errors nil) ;; narrow-indirect causes some problems.
+  :custom
+  (eglot-ignored-server-capabilities
+   '(
+     :hoverProvider
+     :documentHighlightProvider
+     :documentFormattingProvider
+     :documentRangeFormattingProvider
+     :documentOnTypeFormattingProvider
+     :colorProvider
+     :foldingRangeProvider
+     :inlayHintProvider
+     ))
+  )
+
+(use-package eglot-booster
+  :after eglot
+  :config (eglot-booster-mode))
+
+(use-package re-builder
+  :config
+  (defvar my/re-builder-positions nil
+    "Store point and region bounds before calling re-builder")
+  (advice-add 're-builder
+              :before
+              (defun my/re-builder-save-state (&rest _)
+                "Save into `my/re-builder-positions' the point and region
+  positions before calling `re-builder'."
+                (setq my/re-builder-positions
+                      (cons (point)
+                            (when (region-active-p)
+                              (list (region-beginning)
+                                    (region-end)))))))
+  (defun reb-replace-regexp (&optional delimited)
+    "Run `query-replace-regexp' with the contents of re-builder. With
+  non-nil optional argument DELIMITED, only replace matches
+  surrounded by word boundaries."
+    (interactive "P")
+    (reb-update-regexp)
+    (let* ((re (reb-target-value 'reb-regexp))
+           (replacement (query-replace-read-to
+                         re
+                         (concat "Query replace"
+                                 (if current-prefix-arg
+                                     (if (eq current-prefix-arg '-) " backward" " word")
+                                   "")
+                                 " regexp"
+                                 (if (with-selected-window reb-target-window
+                                       (region-active-p)) " in region" ""))
+                         t))
+           (pnt (car my/re-builder-positions))
+           (beg (cadr my/re-builder-positions))
+           (end (caddr my/re-builder-positions)))
+      (with-selected-window reb-target-window
+        (goto-char pnt) ; replace with (goto-char (match-beginning 0)) if you want
+					; to control where in the buffer the replacement starts
+					; with re-builder
+        (setq my/re-builder-positions nil)
+        (reb-quit)
+        (query-replace-regexp re replacement delimited beg end))))
+
+  (define-key reb-mode-map (kbd "RET") #'reb-replace-regexp)
+  (define-key reb-lisp-mode-map (kbd "RET") #'reb-replace-regexp)
+  (global-set-key (kbd "C-M-%") #'re-builder)
   )
 
 (setq gc-cons-threshold 16777216 ; 16mb
