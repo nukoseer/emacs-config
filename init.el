@@ -179,22 +179,6 @@
 
   (startup-screen)
 
-  ;; This hook is called after emacsclient creates a frame.
-  (add-hook 'server-after-make-frame-hook '(lambda ()
-					     (startup-screen)
-					     ;; This is duplicated version of the window-divider
-					     ;; face settings from use-package modus-themes.
-					     ;;If we don't put this piece of code here emacsclient shows window-divider completely black.
-					     (set-face-attribute 'window-divider nil :foreground (face-background 'default) :background (face-background 'default))
-					     (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
-					     (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))
-					     (set-face-attribute 'font-lock-variable-name-face nil :foreground (face-foreground 'default))
-					     
-					     (set-face-attribute 'fancy-dabbrev-preview-face nil :background (face-background 'hl-line) :foreground (face-foreground 'default))
-					     (set-face-attribute 'fancy-dabbrev-menu-face nil :background (face-background 'default) :foreground (face-foreground 'default))
-					     (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face))
-					     ))
-  
   (defun my-load-all-in-directory (dir)
     "`load' all elisp libraries in directory DIR which are not already loaded."
     ;;  (interactive "D")
@@ -238,7 +222,8 @@
 	 ("C-x j"     . previous-buffer)
 	 ("C-x l"     . next-buffer)
 	 ("M-n"       . forward-paragraph)
-	 ("M-p"       . backward-paragraph))
+	 ("M-p"       . backward-paragraph)
+	 ("C-/"       . duplicate-line))
   
   :config
 
@@ -562,7 +547,27 @@
 			       ))
 
   (add-hook 'asm-mode-hook '(lambda ()
-			      (local-unset-key (kbd ";")))))
+			      (local-unset-key (kbd ";"))))
+
+  (setq process-connection-type nil)
+  (setq duplicate-line-final-position 1)
+
+  (defun my-theme-customizations ()
+    (set-face-attribute 'window-divider nil :foreground (face-background 'default) :background (face-background 'default))
+    (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
+    (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))
+    (set-face-attribute 'font-lock-variable-name-face nil :foreground (face-foreground 'default))
+
+  (with-eval-after-load 'fancy-dabbrev
+    (set-face-attribute 'fancy-dabbrev-preview-face nil :background (face-background 'hl-line) :foreground (face-foreground 'default))
+    (set-face-attribute 'fancy-dabbrev-menu-face nil :background (face-background 'default) :foreground (face-foreground 'default))
+    (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face))))
+
+  ;; This hook is called after emacsclient creates a frame.
+  (add-hook 'server-after-make-frame-hook '(lambda ()
+					     (startup-screen)
+					     (my-theme-customizations)))
+  )
 
 (use-package modus-themes
   :ensure t
@@ -621,10 +626,11 @@
   ;; Load the theme of your choice.
   (load-theme 'modus-vivendi)
 
-  (set-face-attribute 'window-divider nil :foreground (face-background 'default) :background (face-background 'default))
-  (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
-  (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))
-  (set-face-attribute 'font-lock-variable-name-face nil :foreground (face-foreground 'default))
+  ;; Apply customizations after theme loads
+  (add-hook 'modus-themes-after-load-theme-hook #'my-theme-customizations)
+
+  ;; Apply immediately after loading theme
+  (my-theme-customizations)
   )
 
 (use-package gcmh
@@ -1063,10 +1069,6 @@ targets."
   :hook (prog-mode . fancy-dabbrev-mode)
   :config
   (setq fancy-dabbrev-preview-delay 0.1)
-  
-  (set-face-attribute 'fancy-dabbrev-preview-face nil :background (face-background 'hl-line) :foreground (face-foreground 'default))
-  (set-face-attribute 'fancy-dabbrev-menu-face nil :background (face-background 'default) :foreground (face-foreground 'default))
-  (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face))
   )
 
 (use-package eglot
