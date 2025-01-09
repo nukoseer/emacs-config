@@ -1,11 +1,9 @@
-(setq gc-cons-threshold most-positive-fixnum ; 2^61 bytes
-      gc-cons-percentage 0.7)
-
+;; -*- lexical-binding: t; -*-
 (setq native-comp-speed 3) ;; maximum native Elisp speed!
 
 (eval-when-compile
   (require 'use-package))
-(require 'bind-key)   
+(require 'bind-key)
 
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -19,7 +17,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(fancy-dabbrev eglot eglot-booster consult-dir multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move))
+   '(fancy-dabbrev consult-dir multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move))
  '(custom-safe-themes
    '("d015f7295925398145c42285e2ea4bb438d449d36e2b10ba0650024862ec93a8"
      "62097dbc0924e2b42f9eaeead73fc2c12cf7b579c214bbb5e755d4f2391ffc2f"
@@ -36,22 +34,11 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ansi-color-bright-white ((t :background "gray55" :foreground "gray55")))
- '(mode-line ((t :box (:style released-button)))))
+ )
 
-;; A few more useful configurations...
 (use-package emacs
   :init
-  (defvar after-enable-theme-hook nil
-    "Normal hook run after enabling a theme." )
-  
-  (defun run-after-enable-theme-hook (&rest _args)
-    "Run `after-enable-theme-hook'."
-    (run-hooks 'after-enable-theme-hook)
-    )
-  
-  (advice-add 'enable-theme :after #'run-after-enable-theme-hook)
-  
+
   (add-hook 'emacs-startup-hook '(lambda ()
 				   (message "Emacs ready in %s with %d garbage collections."
 					    (format "%.2f seconds"
@@ -70,28 +57,9 @@
   ;; theme
   (setq custom--inhibit-theme-enable nil)
 
-  ;;  Simpler mode-line
-  (setq-default mode-line-format
-		'("%e"
-		  mode-line-front-space
-                  " "
-                  mode-line-mule-info
-                  mode-line-modified
-                  mode-line-remote
-                  " "
-                  mode-line-buffer-identification
-                  " "
-                  mode-line-position
-                  ;;mode-line-modes
-                  " "
-		  vc-mode
-		  " "
-                  mode-line-misc-info
-		  mode-line-end-spaces))
-
   (setq grep-use-null-device nil)
   (setq linum-format " %5i ")
-  
+
   ;; switch-to-buffer-other-window will switch vertically
   (setq split-width-threshold nil)
   (setq split-height-threshold 200)
@@ -107,29 +75,10 @@
 
   (setq default-frame-alist
 	(append (list
-		 '(font . "Iosevka Fixed-12") ;; PxPlus ToshibaSat 8x16:pixelsize=16:dpi=96:autohint=false:hinting=false:antialias=standard -- Liberation Mono-11.5
+		 '(font . "Iosevka Fixed-12")
 		 '(internal-border-width . 0)
 		 '(left-fringe  . 12)
 		 '(right-fringe . 12))))
-
-  ;;;; force emacs for utf-8
-  ;;(set-language-environment "UTF-8")
-  ;;(prefer-coding-system 'utf-8)
-  ;;;;(modify-coding-system-alist 'file "" 'utf-8)
-  ;;(set-default-coding-systems 'utf-8)
-  ;;(set-terminal-coding-system 'utf-8)
-  ;;(set-keyboard-coding-system 'utf-8)
-  ;;(setq coding-system-for-read 'utf-8)
-  ;;(setq coding-system-for-write 'utf-8)
-  ;;(setq default-buffer-file-coding-system 'utf-8) 
-  ;;;; backwards compatibility as default-buffer-file-coding-system
-  ;;;; is deprecated in 23.2.
-  ;;(if (boundp 'buffer-file-coding-system)
-  ;;    (setq-default buffer-file-coding-system 'utf-8)
-  ;;  (setq default-buffer-file-coding-system 'utf-8))
-  ;;
-  ;;;; Treat clipboard input as UTF-8 string first; compound text next, etc.
-  ;;(setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
   ;; set default directory to c++ folder
   (setq default-directory "C:/")
@@ -151,12 +100,7 @@
   (setq compilation-always-kill t)
   (setq compilation-scroll-output t)
 
-  ;; C-n adds new line if it is end of the buffer
-  (setq next-line-add-newlines t)
-
   (setq lexical-binding t)
-
-  (setq find-program "fd.exe")
 
   (setq switch-to-buffer-obey-display-actions t)
 
@@ -217,14 +161,14 @@
          ("<f2>"      . run)
          ("<f3>"      . generate)
 	 ("C-x w"     . window-toggle-side-windows)
-	 ("<escape>"     . window-toggle-side-windows)
+	 ("<escape>"  . window-toggle-side-windows)
 	 ("C-,"       . mark-sexp)
 	 ("C-x j"     . previous-buffer)
 	 ("C-x l"     . next-buffer)
 	 ("M-n"       . forward-paragraph)
 	 ("M-p"       . backward-paragraph)
 	 ("C-/"       . duplicate-line))
-  
+
   :config
 
   (menu-bar-mode 0)
@@ -233,7 +177,6 @@
   (tooltip-mode 0)
   (blink-cursor-mode 0)
   (column-number-mode t)
-  ;;(icomplete-mode 1)
   (electric-pair-mode t)
   (global-visual-line-mode t)
   (global-hl-line-mode t)
@@ -243,6 +186,7 @@
   (window-divider-mode t)
   (repeat-mode t)
   (recentf-mode t)
+  (global-eldoc-mode -1)
 
   ;;(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
   ;;(load-theme 'nano t)
@@ -253,7 +197,7 @@
     (mapc 'kill-buffer (cl-remove-if
 			(lambda (x)
                           (or
-                           ;; (eq x (current-buffer)) 
+                           ;; (eq x (current-buffer))
                            (member (buffer-name x) '("*Messages*" "*scratch*" "init.el"))))
 			(buffer-list)))
     (unlock-compilation-directory)
@@ -263,41 +207,6 @@
     (other-window 1)
     (find-file "~/.emacs.d/init.el")
     (other-window 1))
-  
-  ;; c / c++ visual studio style code indentation
-  (defun my-c-mode-common-hook ()
-    ;; my customizations for all of c-mode, c++-mode, objc-mode, java-mode
-    (c-set-offset 'substatement-open 0)
-    (c-set-offset 'statement-cont 0)
-    ;; other customizations can go here
-    
-    (c-set-offset 'inextern-lang 0)
-    
-    (setq c-tab-always-indent t)
-    (setq c-basic-offset 4)                  ;; Default is 2
-    (setq c-indent-level 4)                  ;; Default is 2
-    (c-set-offset 'case-label '+)       ;; for switch-case
-    (c-set-offset 'statement-case-intro 0)
-    (c-set-offset 'statement-case-open 0)
-
-    (c-set-offset 'brace-list-open 0)      ;; open brace of an enum or static array list
-    (c-set-offset 'brace-list-close 0)      ;; open brace of an enum or static array list
-    (c-set-offset 'brace-list-intro '+)      ;; first line in an enum or static array list
-    (c-set-offset 'brace-list-entry 0)      ;; subsequent lines in an enum or static array
-    
-    (setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60))
-    (setq tab-width 4)
-    (setq indent-tabs-mode nil)  ; use spaces only if nil
-    )
-
-  (setq auto-mode-alist
-	(append
-	 '(("\\.cpp$"    . c++-mode)
-	   ;;   ("\\.glsl$"    . c++-mode)
-           ("\\.h$"    . c++-mode)
-           ("\\.c$"   . c++-mode)
-	   ("\\.hlsl$"   . c++-mode)
-	   ) auto-mode-alist))
 
   ;; change window split orientation (horizontal to vertical or opposite)
   (defun toggle-window-split ()
@@ -370,7 +279,7 @@
     (insert "// NOTE: "))
 
   ;; highlighting for TODO and NOTE
-  (setq fixme-modes '(c++-mode c-mode emacs-lisp-mode dart-mode))
+  (setq fixme-modes '(c-mode c-ts-mode c++-mode c++-ts-mode emacs-lisp-mode))
   (make-face 'font-lock-fixme-face)
   (make-face 'font-lock-note-face)
   (make-face 'font-lock-important-face)
@@ -438,27 +347,12 @@
     (if (find-project-directory) (compile "run.bat"))
     (other-window 1))
 
-  (defun generate ()
-    "Generate the current project."
-    (interactive)
-    (if (find-project-directory) (compile "generate.bat"))
-    (other-window 1))
-
   ;; We override these 2 functions to prevent pulsing after jumps.
   (defcustom xref-after-jump-hook '(recenter)
     "Functions called after jumping to an xref." )
   (defcustom xref-after-return-hook '()
     "Functions called after returning to a pre-jump location.")
 
-  (defvar buffer-navigation-repeat-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "j") 'next-buffer)
-      (define-key map (kbd "l") 'previous-buffer)
-      map)
-    "Keymap to repeat `next-buffer' and `previous-buffer'.  Used in `repeat-mode'.")
-  (put 'next-buffer 'repeat-map 'buffer-navigation-repeat-map)
-  (put 'previous-buffer 'repeat-map 'buffer-navigation-repeat-map)
-  
   (defun push-mark-no-activate ()
     "Pushes `point' to `mark-ring' and does not activate the region
    Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
@@ -486,8 +380,8 @@
 	   (if (file-remote-p default-directory)
 	       (list (read-shell-command "Run find (like this): "
 					 '("fd \"\" . -x \"echo\" {}:1:" . 5) 'grep-find-history))
-	       (list (read-shell-command "Run find (like this): "
-					 `(,(format "fd \"\" %S -x cmd /C echo \"{}:1:\"" default-directory) . 5) 'grep-find-history)))
+	     (list (read-shell-command "Run find (like this): "
+				       `(,(format "fd \"\" %S -x cmd /C echo \"{}:1:\"" default-directory) . 5) 'grep-find-history)))
 	 ;; No default was set
 	 (read-string
           "compile.el: No `grep-find-command' command available. Press RET.")
@@ -524,13 +418,6 @@
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t)
 
-  (put 'downcase-region 'disabled nil)
-  (put 'upcase-region 'disabled nil)
-
-  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
-
-  (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
-  
   (add-hook 'c-mode-common-hook '(lambda ()
 				   (local-set-key (kbd "<C-tab>") #'c-indent-line-or-region)
 				   (font-lock-add-keywords nil
@@ -558,10 +445,16 @@
     (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))
     (set-face-attribute 'font-lock-variable-name-face nil :foreground (face-foreground 'default))
 
-  (with-eval-after-load 'fancy-dabbrev
-    (set-face-attribute 'fancy-dabbrev-preview-face nil :background (face-background 'hl-line) :foreground (face-foreground 'default))
-    (set-face-attribute 'fancy-dabbrev-menu-face nil :background (face-background 'default) :foreground (face-foreground 'default))
-    (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face))))
+    (face-spec-set 'ansi-color-bright-white
+		   '((t (:background "gray55" :foreground "gray55"))))
+
+    (face-spec-set 'mode-line
+		   '((t (:box (:style released-button)))))
+
+    (with-eval-after-load 'fancy-dabbrev
+      (set-face-attribute 'fancy-dabbrev-preview-face nil :background (face-background 'hl-line) :foreground (face-foreground 'default))
+      (set-face-attribute 'fancy-dabbrev-menu-face nil :background (face-background 'default) :foreground (face-foreground 'default))
+      (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face))))
 
   ;; This hook is called after emacsclient creates a frame.
   (add-hook 'server-after-make-frame-hook '(lambda ()
@@ -662,9 +555,10 @@
 
 (use-package smartscan
   :ensure t
+  :bind (("C-M-n" . smartscan-symbol-go-forward)
+	 ("C-M-p" . smartscan-symbol-go-backward))
   :config
-  ;; Change smartscan-symbol-go-forward/backward to C-M-n/p in smartscan.elf and byte-compile-file
-  (global-smartscan-mode t))
+  (smartscan-mode t))
 
 (use-package buffer-move
   :ensure t
@@ -682,7 +576,7 @@
   (setq dumb-jump-force-searcher 'rg)
   (setq dumb-jump-rg-search-args "--pcre2 -j 8 -H --no-heading -n -S")
   (setq dumb-jump-default-project "C:/Programming/") ;; Project specific
-  
+
   (add-hook 'xref-backend-functions 'dumb-jump-xref-activate))
 
 (use-package tramp
@@ -708,12 +602,10 @@
 	 ("C-<"   . mc/mark-previous-like-this-word)
 	 ("C-c a" . mc/mark-all-like-this)))
 
-;; make-mark-visible.el
 (use-package make-mark-visible
   :bind (
 	 ("C-c v" . mmv-toggle-mark-visibility)))
 
-;; narrow-indirect.el
 (use-package narrow-indirect
   :init
   (setq ni-buf-name-prefix "")
@@ -729,7 +621,7 @@
   (dired-mode . dired-omit-mode)
   :config
   (put 'dired-find-alternate-file 'disabled nil)
-  
+
   (defun dired-back-to-top ()
     (interactive)
     (beginning-of-buffer)
@@ -750,8 +642,7 @@
 
 (use-package avy
   :ensure t
-  :bind (
-	 ("M-j" . avy-goto-char-timer))
+  :bind (("M-j" . avy-goto-char-timer))
   :config
   (setq avy-timeout-seconds 0.3)
   (setq avy-single-candidate-jump nil)
@@ -771,38 +662,25 @@
   :defer t
   :config
   ;; We need to add gnu/linux to rg.el:311 as a system-type because
-  ;; without "." rg wasn't working properly under WSL. 
+  ;; without "." rg wasn't working properly under WSL.
   (setq rg-executable "rg"))
 
-;; Enable vertico
 (use-package vertico
   :ensure t
   :init
-  (vertico-mode)
-
-  ;; Different scroll margin
-  ;; (setq vertico-scroll-margin 0)
-
-  ;; Show more candidates
-  ;; (setq vertico-count 20)
-
-  ;; Grow and shrink the Vertico minibuffer
-  ;; (setq vertico-resize t)
-
-  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  ;; (setq vertico-cycle t)
-  )
+  (vertico-mode))
 
 (use-package projectile
   :ensure t
   :after tramp
   :init
+  ;; This is needed when remote projects exist.
   ;;(require 'tramp)
   (projectile-mode t)
   :config
   (setq projectile-generic-command "fd . -0 --type f --color=never --full-path --strip-cwd-prefix")
   (setq projectile-git-fd-args "-H -0 -E .git -tf --strip-cwd-prefix --color=never")
-  
+
   (add-to-list 'projectile-globally-ignored-directories "*.svg")
 
   (rg-define-search rg-c/cpp-project
@@ -813,14 +691,14 @@
 
   (advice-add 'projectile-ripgrep :override #'rg-c/cpp-project)
   (setq-default projectile-indexing-method 'alien)
-  
+
   ;;(advice-add 'projectile-project-root :before-while
   ;;(lambda (&optional dir)
-    ;;(not (file-remote-p (or dir default-directory)))))
+  ;;(not (file-remote-p (or dir default-directory)))))
 
   ;; default was C-c p
   :bind-keymap (("C-x p" . projectile-command-map))
-  
+
   :bind (
 	 ("M-s f" . projectile-find-file)
 	 ("M-s 4 f" . projectile-find-file-other-window)
@@ -838,33 +716,23 @@
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
-;; Enable rich annotations using the Marginalia package
 (use-package marginalia
   :ensure t
-  ;; Either bind `marginalia-cycle' globally or only in the minibuffer
-  :bind (("M-A" . marginalia-cycle)
-         :map minibuffer-local-map
-         ("M-A" . marginalia-cycle))
-
-  ;; The :init configuration is always executed (Not lazy!)
   :init
-  ;; Must be in the :init section of use-package such that the mode gets
-  ;; enabled right away. Note that this forces loading the package.
   (marginalia-mode t))
 
 (use-package consult
   :ensure t
-  ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind (;; C-c bindings in `mode-specific-map'
          ;; C-x bindings in `ctl-x-map'
-         ("C-'" . consult-buffer)                ;; orig. switch-to-buffer
-         ("C-;" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+         ("C-'" . consult-buffer)
+         ("C-;" . consult-buffer-other-window)
          ;; Other custom bindings
-         ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+         ("M-y" . consult-yank-pop)
          ;; M-g bindings in `goto-map'
          ("M-g e" . consult-compile-error)
-         ("M-g g" . consult-goto-line)             ;; orig. goto-line
-         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+         ("M-g g" . consult-goto-line)
+         ("M-g M-g" . consult-goto-line)
          ("M-g m" . consult-mark)
          ("M-g k" . consult-global-mark)
          ("C-i" . consult-imenu)
@@ -878,20 +746,19 @@
          ;; Isearch integration
          ("M-s e" . consult-isearch-history)
          :map isearch-mode-map
-         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-         ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+         ("M-e" . consult-isearch-history)
+         ("M-s e" . consult-isearch-history)
+         ("M-s l" . consult-line)
+         ("M-s L" . consult-line-multi)
          ;; Minibuffer history
          :map minibuffer-local-map
-         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+         ("M-s" . consult-history)
+         ("M-r" . consult-history))
 
   ;; Enable automatic preview at point in the *Completions* buffer. This is
   ;; relevant when you use the default completion UI.
   :hook (completion-list-mode . consult-preview-at-point-mode)
 
-  ;; The :init configuration is always executed (Not lazy)
   :init
 
   ;; Use Consult to select xref locations with preview
@@ -946,10 +813,6 @@
       (find-file (consult--find prompt #'consult--fd-builder initial))))
 
   (advice-add 'consult-find :override #'consult-fd)
-  
-  ;; Optionally make narrowing help available in the minibuffer.
-  ;; You may want to use `embark-prefix-help-command' or which-key instead.
-  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
 
   ;; By default `consult-project-function' uses `project-root' from project.el.
   ;; Optionally configure a different project root function.
@@ -969,19 +832,11 @@
 (use-package embark
   :ensure t
   :bind
-  (("C-." . embark-act)         ;; pick some comfortable binding
-   ;;("C-," . embark-dwim)      ;; good alternative: M-.
-   )
-  ;;("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  (("C-." . embark-act))
 
   :init
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
-
-  ;; Show the Embark target at point via Eldoc.  You may adjust the Eldoc
-  ;; strategy, if you want to see the documentation from multiple providers.
-  (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
-  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
 
   :config
 
@@ -1025,23 +880,14 @@ targets."
   (advice-add #'embark-completing-read-prompter
               :around #'embark-hide-which-key-indicator)
 
-  ;; (setq embark-verbose-indicator-display-action '((display-buffer-reuse-window display-buffer-below-selected)
-  ;;  						  (window-height . 0.2)))
-  
-  ;; (setq embark-indicators
-  ;;  	'(embark-verbose-indicator
-  ;;  	  embark-highlight-indicator
-  ;;  	  embark-isearch-highlight-indicator))
-
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none)))))
 
-;; Consult users will also want the embark-consult package.
 (use-package embark-consult
-  :ensure t ; only need to install it, embark loads it after consult if found
+  :ensure t
   :hook
   (embark-collect-mode . consult-preview-at-point-mode)
   )
@@ -1053,17 +899,6 @@ targets."
          ("C-x C-d" . consult-dir)
          ("C-x C-j" . consult-dir-jump-file)))
 
-(use-package ediff
-  :defer t
-  :config
-
-  (setenv "PATH" (concat (getenv "PATH") ";C:/Program Files/Git/usr/bin"))
-  (setq exec-path (append exec-path '("C:/Program Files/Git/usr/bin")))
-
-  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-  (setq ediff-split-window-function 'split-window-horizontally)
-  (setq ediff-diff-options "-w"))
-
 (use-package fancy-dabbrev
   :ensure t
   :hook (prog-mode . fancy-dabbrev-mode)
@@ -1071,90 +906,121 @@ targets."
   (setq fancy-dabbrev-preview-delay 0.1)
   )
 
-(use-package eglot
-  :hook
-  (c-mode . eglot-ensure)
-  (c++-mode . eglot-ensure)
-  (csharp-mode . eglot-ensure)
+;;(use-package eglot
+;;  :hook
+;;  (c-ts-mode . eglot-ensure)
+;;  (c++-ts-mode . eglot-ensure)
+;;  (csharp-mode . eglot-ensure)
+;;  :config
+;;  (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+;;  (add-to-list 'eglot-server-programs '(csharp-mode . ("omnisharp" "-lsp")))
+;;  (add-to-list 'eglot-stay-out-of 'eldoc)
+;;  (add-to-list 'eglot-stay-out-of 'flymake)
+;;  (setf (plist-get eglot-events-buffer-config :size) 0)
+;;  (setq track-changes-record-errors nil) ;; narrow-indirect causes some problems.
+;;  :custom
+;;  (eglot-ignored-server-capabilities
+;;   '(
+;;     :hoverProvider
+;;     :documentHighlightProvider
+;;     :documentFormattingProvider
+;;     :documentRangeFormattingProvider
+;;     :documentOnTypeFormattingProvider
+;;     :colorProvider
+;;     :foldingRangeProvider
+;;     :inlayHintProvider
+;;     )))
+;;
+;;(use-package eglot-booster
+;;  :after eglot
+;;  :config (eglot-booster-mode))
+
+(use-package treesit
+  :init
+  (setq treesit-extra-load-path '("~/.emacs.d/tree-sitter/"))
+  ;;(setq treesit-language-source-alist
+  ;; '((c "https://github.com/tree-sitter/tree-sitter-c")
+  ;;   (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+  ;;   ))
+
+  (setq treesit-font-lock-level 4)
+  ;;(setq treesit--indent-verbose t)
+
+  (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
   :config
-  (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
-  (add-to-list 'eglot-server-programs '(csharp-mode . ("omnisharp" "-lsp")))
-  (add-to-list 'eglot-stay-out-of 'eldoc)
-  (add-to-list 'eglot-stay-out-of 'flymake)
-  (setf (plist-get eglot-events-buffer-config :size) 0)
-  (setq track-changes-record-errors nil) ;; narrow-indirect causes some problems.
+  (defface my-ts-number-face
+    '((t (:inherit font-lock-constant-face)))
+    "Number face.")
+
+  (defvar my/ts-font-lock-settings
+    (treesit-font-lock-rules
+     :language 'c
+     :feature 'literal
+     :override t
+     :language 'cpp
+     :feature 'literal
+     :override t
+     '((number_literal) @my-ts-number-face))))
+
+(use-package c-ts-mode
+  :init
+  (setq c-ts-mode-indent-offset 4)
+  :config
+  ;;(setq c-ts-mode-indent-style 'bsd)
+
+  (defun my-custom-c-ts-indent-rules ()
+    "Override the built-in BSD indentation style with some additional rules"
+    `(
+      ;;((match "case_statement" "compound_statement") parent-bol c-ts-mode-indent-offset)
+      ,@(alist-get 'bsd (c-ts-mode--indent-styles 'c))))
+
+  (defun my-setup-c-ts-mode ()
+    "Setup custom indentation for `c-ts-mode`."
+    (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
+    (setq-local forward-sexp-function #'forward-sexp-default-function)
+    (setq-local treesit-font-lock-settings
+  		(append treesit-font-lock-settings my/ts-font-lock-settings))
+    )
+
+  (add-hook 'c-ts-mode-hook #'my-setup-c-ts-mode)
+  ;; Do we need to add c++ separately?
+  (add-hook 'c++-ts-mode-hook #'my-setup-c-ts-mode)
   :custom
-  (eglot-ignored-server-capabilities
-   '(
-     :hoverProvider
-     :documentHighlightProvider
-     :documentFormattingProvider
-     :documentRangeFormattingProvider
-     :documentOnTypeFormattingProvider
-     :colorProvider
-     :foldingRangeProvider
-     :inlayHintProvider
-     ))
-  )
+  (c-ts-mode-indent-style #'my-custom-c-ts-indent-rules))
 
-(use-package eglot-booster
-  :after eglot
-  :config (eglot-booster-mode))
+;; This is valid after emacs-31. We use this in WSL side.
+;;(use-package c-ts-mode
+;;  :init
+;;  (setq c-ts-mode-indent-offset 4)
+;;  :config
+;;  ;;(setq c-ts-mode-indent-style 'bsd)
+;;
+;;  (defun my-custom-c-ts-indent-rules ()
+;;  "Combine BSD rules with custom rules for `c-ts-mode`."
+;;  (let ((bsd-rules (c-ts-mode--simple-indent-rules 'c 'bsd)))
+;;    (append bsd-rules
+;;            `(
+;;	      ;; Add new rules here.
+;;  	      ;;((match "case_statement" "compound_statement") parent-bol c-ts-mode-indent-offset)
+;;  	      ))))
+;;
+;;  (defun my-setup-c-ts-mode ()
+;;    "Setup custom indentation for `c-ts-mode`."
+;;    (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
+;;    (setq-local treesit-simple-indent-rules (my-custom-c-ts-indent-rules))
+;;    (setq-local treesit-font-lock-settings
+;;	      (append treesit-font-lock-settings my/ts-font-lock-settings))
+;;    )
+;;
+;;  (add-hook 'c-ts-mode-hook #'my-setup-c-ts-mode)
+;;  ;; Do we need to add c++ separately?
+;;  (add-hook 'c++-ts-mode-hook #'my-setup-c-ts-mode)
+;;  )
 
-(use-package re-builder
-  :config
-  (defvar my/re-builder-positions nil
-    "Store point and region bounds before calling re-builder")
-  (advice-add 're-builder
-              :before
-              (defun my/re-builder-save-state (&rest _)
-                "Save into `my/re-builder-positions' the point and region
-  positions before calling `re-builder'."
-                (setq my/re-builder-positions
-                      (cons (point)
-                            (when (region-active-p)
-                              (list (region-beginning)
-                                    (region-end)))))))
-  (defun reb-replace-regexp (&optional delimited)
-    "Run `query-replace-regexp' with the contents of re-builder. With
-  non-nil optional argument DELIMITED, only replace matches
-  surrounded by word boundaries."
-    (interactive "P")
-    (reb-update-regexp)
-    (let* ((re (reb-target-value 'reb-regexp))
-           (replacement (query-replace-read-to
-                         re
-                         (concat "Query replace"
-                                 (if current-prefix-arg
-                                     (if (eq current-prefix-arg '-) " backward" " word")
-                                   "")
-                                 " regexp"
-                                 (if (with-selected-window reb-target-window
-                                       (region-active-p)) " in region" ""))
-                         t))
-           (pnt (car my/re-builder-positions))
-           (beg (cadr my/re-builder-positions))
-           (end (caddr my/re-builder-positions)))
-      (with-selected-window reb-target-window
-        (goto-char pnt) ; replace with (goto-char (match-beginning 0)) if you want
-					; to control where in the buffer the replacement starts
-					; with re-builder
-        (setq my/re-builder-positions nil)
-        (reb-quit)
-        (query-replace-regexp re replacement delimited beg end))))
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
 
-  (define-key reb-mode-map (kbd "RET") #'reb-replace-regexp)
-  (define-key reb-lisp-mode-map (kbd "RET") #'reb-replace-regexp)
-  (global-set-key (kbd "C-M-%") #'re-builder)
-  )
-
-(setq gc-cons-threshold 16777216 ; 16mb
-      gc-cons-percentage 0.1)
-
-;; M-s o Occur
-
-;; describe-char to learn face of the char cursor stands on (maybe also describe-face, customize-face, customize-group)
-;; C-M-h mark function
 ;; C-c C-\ c-backslash-region
 
 ;; M-s h r highlight-regexp
@@ -1162,10 +1028,6 @@ targets."
 
 ;; C-x C-l downcase-region
 ;; C-x C-u upcase-region
-
-;; M-! shell-command
-;; M-& async-shell-command
-;; M-| shell-command-on-region
 
 ;; C-M-Space mark-sexp
 
@@ -1190,13 +1052,4 @@ targets."
 
 ;; M-s w isearch-forward-word
 
-;; Projectile
-;; C-x p p switch project
-;; C-x p f find project file
-;; C-x p s r search in project
-
 ;; C-x r N rectangle line numbers
-
-;; M-x ielm interactively evaluate emacs lisp expressions
-
-;; C-x C-q (read-only-mode)
