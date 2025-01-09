@@ -972,6 +972,7 @@ targets."
   (defun my-custom-c-ts-indent-rules ()
     "Override the built-in BSD indentation style with some additional rules"
     `(
+      ((node-is "initializer_list") parent-bol 0)
       ;;((match "case_statement" "compound_statement") parent-bol c-ts-mode-indent-offset)
       ,@(alist-get 'bsd (c-ts-mode--indent-styles 'c))))
 
