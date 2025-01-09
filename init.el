@@ -38,7 +38,6 @@
 
 (use-package emacs
   :init
-
   (add-hook 'emacs-startup-hook '(lambda ()
 				   (message "Emacs ready in %s with %d garbage collections."
 					    (format "%.2f seconds"
@@ -46,14 +45,18 @@
 						     (time-subtract after-init-time before-init-time)))
 					    gcs-done)))
 
-  (setq dabbrev-case-distinction nil)
-  (setq dabbrev-case-fold-search nil)
-  (setq dabbrev-case-replace nil)
-
   (add-hook 'emacs-lisp-mode-hook '(lambda ()
 				     (local-set-key (kbd "<tab>") #'fancy-dabbrev-expand)
 			             (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
 				     ))
+
+  ;;close git service
+  (setq vc-handled-backends nil)
+
+  (setq dabbrev-case-distinction nil)
+  (setq dabbrev-case-fold-search nil)
+  (setq dabbrev-case-replace nil)
+
   ;; theme
   (setq custom--inhibit-theme-enable nil)
 
@@ -104,9 +107,6 @@
 
   (setq switch-to-buffer-obey-display-actions t)
 
-  ;;close git service
-  (setq vc-handled-backends nil)
-
   ;; activate fullscreen, open empty buffer and init.el
   (defun startup-screen ()
     (if (< (count-windows) 2)
@@ -153,7 +153,7 @@
 	 ("M-<right>" . enlarge-window-horizontally)
 	 ("M-<left>"  . shrink-window-horizontally)
 	 ("C-x C-z"   . grep-fd)
-	 ("C-x C-c"   . grep-find)
+	 ("C-x C-c"   . nil)
 	 ("<M-f4>"    . save-buffers-kill-terminal)
 	 ("C-M-c"     . scroll-other-window-down)
 	 ("C-x C-b"   . ibuffer)
@@ -182,11 +182,9 @@
   (global-hl-line-mode t)
   (global-so-long-mode t)
   (global-display-line-numbers-mode 0)
-  (global-auto-revert-mode)
+  (global-auto-revert-mode t)
   (window-divider-mode t)
-  (repeat-mode t)
-  (recentf-mode t)
-  (global-eldoc-mode -1)
+  (global-eldoc-mode 0)
 
   ;;(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
   ;;(load-theme 'nano t)
@@ -260,8 +258,7 @@
     (interactive "p")
     (move-line (if (null n) 1 n)))
 
-  ;; Introduce a bottom side window that catches
-  ;; compilations, greps etc.
+  ;; Introduce a bottom side window that catches compilations, greps etc.
   (add-to-list 'display-buffer-alist
 	       `(,(rx (| "*compilation*" "*grep*" "*ripgrep*" "*rg*" "*haskell*" "*Async Shell Command*"))
 		 (display-buffer-in-side-window)
@@ -355,22 +352,22 @@
 
   (defun push-mark-no-activate ()
     "Pushes `point' to `mark-ring' and does not activate the region
-   Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
+ Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
     (interactive)
     (push-mark (point) t nil)
     (message "Mark set"))
 
   (defun jump-to-mark ()
     "Jumps to the local mark, respecting the `mark-ring' order.
-  This is the same as using \\[set-mark-command] with the prefix argument."
+This is the same as using \\[set-mark-command] with the prefix argument."
     (interactive)
     (set-mark-command 1))
 
-  (set-variable 'grep-command "rg --pcre2 -j 8 -H --no-heading --color=always -n -S -e ")
-  (grep-apply-setting
-   'grep-find-command
-   '("rg --pcre2 -j 8 -H --no-heading --color=always -n -S -e \"\" . -tc -tcpp" . 58)
-   )
+  ;;(set-variable 'grep-command "rg --pcre2 -j 8 -H --no-heading --color=always -n -S -e ")
+  ;;(grep-apply-setting
+  ;; 'grep-find-command
+  ;; '("rg --pcre2 -j 8 -H --no-heading --color=always -n -S -e \"\" . -tc -tcpp" . 58)
+  ;; )
 
   (defun grep-fd (command-args)
     (interactive
@@ -390,24 +387,14 @@
       (let ((null-device nil))		; see grep
 	(grep command-args))))
 
-  (defadvice compile (before ad-compile-smart activate)
-    "Advises `compile' so it sets the argument COMINT to t."
-    (ad-set-arg 1 t))
-
-  ;; Add prompt indicator to `completing-read-multiple'.
-  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
-  (defun crm-indicator (args)
-    (cons (format "[CRM%s] %s"
-                  (replace-regexp-in-string
-                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-                   crm-separator)
-                  (car args))
-          (cdr args)))
-  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+  (advice-add 'compile :around
+              (lambda (orig-fun command &optional _comint)
+		"Ensure the COMINT argument to `compile` is always t."
+		(funcall orig-fun command t)))
 
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
-        '(read-only t cursor-intangible t face minibuffer-prompt))
+	'(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
   ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
@@ -417,15 +404,6 @@
 
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t)
-
-  (add-hook 'c-mode-common-hook '(lambda ()
-				   (local-set-key (kbd "<C-tab>") #'c-indent-line-or-region)
-				   (font-lock-add-keywords nil
-							   '(("\\<\\(global_variable\\)\\>" . font-lock-keyword-face)
-							     ("\\<\\(internal\\)\\>" . font-lock-keyword-face)
-							     ("\\<\\(local_persist\\)\\>" . font-lock-keyword-face)
-							     ("\\(\\w+\\)\\s-*\("  . font-lock-function-name-face)
-							     ))))
 
   (add-hook 'prog-mode-hook '(lambda ()
 			       (local-set-key (kbd "<tab>") #'fancy-dabbrev-expand)
@@ -444,17 +422,18 @@
     (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
     (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))
     (set-face-attribute 'font-lock-variable-name-face nil :foreground (face-foreground 'default))
-
+    
     (face-spec-set 'ansi-color-bright-white
-		   '((t (:background "gray55" :foreground "gray55"))))
-
+  		   '((t (:background "gray55" :foreground "gray55"))))
+    
     (face-spec-set 'mode-line
-		   '((t (:box (:style released-button)))))
-
+  		   '((t (:box (:style released-button)))))
+    
     (with-eval-after-load 'fancy-dabbrev
       (set-face-attribute 'fancy-dabbrev-preview-face nil :background (face-background 'hl-line) :foreground (face-foreground 'default))
       (set-face-attribute 'fancy-dabbrev-menu-face nil :background (face-background 'default) :foreground (face-foreground 'default))
-      (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face))))
+      (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face)))
+    )
 
   ;; This hook is called after emacsclient creates a frame.
   (add-hook 'server-after-make-frame-hook '(lambda ()
@@ -523,13 +502,22 @@
   (add-hook 'modus-themes-after-load-theme-hook #'my-theme-customizations)
 
   ;; Apply immediately after loading theme
-  (my-theme-customizations)
-  )
+  (my-theme-customizations))
 
 (use-package gcmh
   :ensure t
   :init
   (gcmh-mode))
+
+(use-package repeat
+  :defer t
+  :config
+  (repeat-mode t))
+
+(use-package recentf
+  :defer t
+  :config
+  (recentf-mode t))
 
 (use-package paren
   :init
@@ -581,6 +569,7 @@
 
 (use-package tramp
   :ensure t
+  :defer 3
   :config
   (setq tramp-default-method "plink")
   (setq remote-file-name-inhibit-cache nil)
@@ -672,12 +661,11 @@
 
 (use-package projectile
   :ensure t
-  :after tramp
-  :init
   ;; This is needed when remote projects exist.
-  ;;(require 'tramp)
-  (projectile-mode t)
+  ;;:after tramp
+  :defer t
   :config
+  (projectile-mode t)
   (setq projectile-generic-command "fd . -0 --type f --color=never --full-path --strip-cwd-prefix")
   (setq projectile-git-fd-args "-H -0 -E .git -tf --strip-cwd-prefix --color=never")
 
