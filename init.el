@@ -982,7 +982,10 @@ targets."
       ((node-is "enumerator_list") parent-bol 0)
       ((node-is "compound_statement") parent-bol 0)
       ((match "case_statement" "compound_statement") parent-bol c-ts-mode-indent-offset)
-      ((node-is "initializer_list") parent-bol 0)
+      ;; For top level initializer_list
+      ((and (node-is "initializer_list") (not (parent-is "initializer_list"))) parent-bol 0)
+      ;; For nested initializer_list
+      ((and (node-is "initializer_list") (parent-is "initializer_list")) parent c-ts-mode-indent-offset)
       ,@(alist-get 'c treesit-simple-indent-rules))))
 
   (defun c-ts-mode--declarator-name (node)
