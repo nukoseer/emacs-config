@@ -186,6 +186,9 @@
   (window-divider-mode t)
   (global-eldoc-mode 0)
 
+  (org-babel-do-load-languages
+   'org-babel-load-languages '((C . t)))
+
   ;;(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
   ;;(load-theme 'nano t)
 
@@ -417,6 +420,22 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   (setq process-connection-type nil)
   (setq duplicate-line-final-position 1)
 
+  (defface mode-line-remote
+    '((t (:inherit mode-line-buffer-id :box (:line-width 2 :color "orange"))))
+    "Face for mode line buffer identification in remote buffers."
+    :group 'mode-line)
+
+  (defun my-update-mode-line-buffer-identification ()
+    "Apply a custom face to `mode-line-buffer-identification` for remote buffers only."
+    (setq mode-line-buffer-identification
+          (if (or (and buffer-file-name (file-remote-p buffer-file-name))
+                  (and default-directory (file-remote-p default-directory)))
+              (list (propertize "%b" 'face 'mode-line-remote))
+            (list (propertize "%b" 'face 'mode-line-buffer-id))))
+    )
+
+  (add-hook 'buffer-list-update-hook 'my-update-mode-line-buffer-identification)
+  
   (defun my-theme-customizations ()
     (set-face-attribute 'window-divider nil :foreground (face-background 'default) :background (face-background 'default))
     (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
@@ -515,8 +534,7 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   (repeat-mode t))
 
 (use-package recentf
-  :defer t
-  :config
+  :init
   (recentf-mode t))
 
 (use-package paren
@@ -946,6 +964,7 @@ targets."
      :language 'c
      :feature 'literal
      :override t
+     '((number_literal) @my-ts-number-face)
      :language 'cpp
      :feature 'literal
      :override t
@@ -954,29 +973,76 @@ targets."
 (use-package c-ts-mode
   :init
   (setq c-ts-mode-indent-offset 4)
-  :config
-  ;;(setq c-ts-mode-indent-style 'bsd)
 
+  :config
   (defun my-custom-c-ts-indent-rules ()
     "Override the built-in BSD indentation style with some additional rules"
-    `(
+    `((c
+      ((node-is "field_declaration_list") parent-bol 0)
+      ((node-is "enumerator_list") parent-bol 0)
+      ((node-is "compound_statement") parent-bol 0)
+      ((match "case_statement" "compound_statement") parent-bol c-ts-mode-indent-offset)
       ((node-is "initializer_list") parent-bol 0)
-      ;;((match "case_statement" "compound_statement") parent-bol c-ts-mode-indent-offset)
-      ,@(alist-get 'bsd (c-ts-mode--indent-styles 'c))))
+      ,@(alist-get 'c treesit-simple-indent-rules))))
+
+  (defun c-ts-mode--declarator-name (node)
+    "Extract the name from a typedef node."
+    (let ((declarator (treesit-node-child-by-field-name node "declarator")))
+      (when declarator
+	(treesit-node-text declarator))))
+
+  (defun c-ts-mode--struct-field-name (node)
+    "Extract the field name combined with the struct name."
+    (let* ((field-list (treesit-node-parent node)) ;; field_declaration_list
+           (struct-spec (and field-list (treesit-node-parent field-list))) ;; struct_specifier
+           (struct-name (and struct-spec
+                             (string-equal (treesit-node-type struct-spec) "struct_specifier")
+                             (treesit-node-text (treesit-node-child-by-field-name struct-spec "name"))))
+           (field-name (treesit-node-text (treesit-node-child-by-field-name node "declarator"))))
+      (if struct-name
+          (format "%s::%s" struct-name field-name) ;; Combine struct name and field name
+	field-name))) ;; Fallback to just the field name
+
+  (defun c-ts-mode--preprocessor-define (node)
+    "Extract the name and value from a preprocessor #define directive."
+    (let* ((name-node (treesit-node-child-by-field-name node "name"))
+           (value-node (treesit-node-child-by-field-name node "value"))
+           (name (and name-node (treesit-node-text name-node)))
+           (value (and value-node (treesit-node-text value-node))))
+      (if (and name value)
+          (format "%s %s" name value) ;; Combine name and value
+	(or name ""))))
+
+  (defun c-ts-mode--preprocessor-include (node)
+    "Extract the name from a typedef node."
+    (let ((include (treesit-node-child-by-field-name node "path")))
+      (when include
+	(treesit-node-text include))))
 
   (defun my-setup-c-ts-mode ()
     "Setup custom indentation for `c-ts-mode`."
+
+    (setq-local treesit-simple-imenu-settings
+		'(("enum" "\\`enum_specifier\\'" nil nil)
+		  ("struct" "\\`struct_specifier\\'" nil nil)
+		  ("union" "\\`union_specifier\\'" nil nil)
+		  ("variable" "\\`declaration\\'" nil nil)
+		  ("function" "\\`function_definition\\'" nil nil)
+		  ("class" "\\`\\(?:class_specifier\\|function_definition\\)\\'" nil nil)
+		  ("typedef" "\\`type_definition\\'" nil c-ts-mode--declarator-name)
+		  ("field" "\\`field_declaration\\'" nil c-ts-mode--struct-field-name)
+		  ("#define" "\\`preproc_def\\'" nil c-ts-mode--preprocessor-define)
+		  ("#include" "\\`preproc_include\\'" nil c-ts-mode--preprocessor-include)))
+    
     (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
-    (setq-local forward-sexp-function #'forward-sexp-default-function)
+    (setq-local treesit-simple-indent-rules (my-custom-c-ts-indent-rules))
+    (setq-local c-ts-common-list-indent-style 'simple)
     (setq-local treesit-font-lock-settings
-  		(append treesit-font-lock-settings my/ts-font-lock-settings))
-    )
+  		(append treesit-font-lock-settings my/ts-font-lock-settings)))
 
   (add-hook 'c-ts-mode-hook #'my-setup-c-ts-mode)
   ;; Do we need to add c++ separately?
-  (add-hook 'c++-ts-mode-hook #'my-setup-c-ts-mode)
-  :custom
-  (c-ts-mode-indent-style #'my-custom-c-ts-indent-rules))
+  (add-hook 'c++-ts-mode-hook #'my-setup-c-ts-mode))
 
 ;; This is valid after emacs-31. We use this in WSL side.
 ;;(use-package c-ts-mode
