@@ -83,9 +83,6 @@
 		 '(left-fringe  . 12)
 		 '(right-fringe . 12))))
 
-  ;; set default directory to c++ folder
-  (setq default-directory "C:/")
-
   ;; disable auto save mode
   (setq auto-save-default nil)
   ;; disable back up
@@ -106,6 +103,30 @@
   (setq lexical-binding t)
 
   (setq switch-to-buffer-obey-display-actions t)
+
+  (defun running-in-wsl-p ()
+    "Check if Emacs is running inside WSL by environment variables."
+    (getenv "WSL_DISTRO_NAME"))
+  
+  (defun my-comint-path-rewrite (output)
+    "Rewrite Windows-style paths (C:\\) to WSL paths (/mnt/c/) in comint buffers."
+    (let ((start (or comint-last-output-start (point-min))))
+      (save-excursion
+	(goto-char start)
+	;; Replace `C:\` with `/mnt/c/`
+	(while (re-search-forward "C:\\\\" nil t) ;; `nil` for `end` ensures it searches to the updated `point-max`
+          (replace-match "/mnt/c/"))
+	;; Replace all remaining `\` with `/`
+	(goto-char start)
+	(while (re-search-forward "\\\\" nil t)
+          (replace-match "/")))))
+
+  (if (running-in-wsl-p)
+      (progn
+	(message "Running in WSL!")
+	(setq default-directory "/mnt/c/")
+	(add-hook 'comint-output-filter-functions 'my-comint-path-rewrite))
+    (setq default-directory "C:/"))
 
   ;; activate fullscreen, open empty buffer and init.el
   (defun startup-screen ()
