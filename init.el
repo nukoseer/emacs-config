@@ -907,6 +907,25 @@ targets."
   (advice-add #'embark-completing-read-prompter
               :around #'embark-hide-which-key-indicator)
 
+  (setf (alist-get 'my/visual-query-replace embark-pre-action-hooks)
+        '(embark--beginning-of-target embark--unmark-target))
+  (setf (alist-get 'my/visual-query-replace embark-around-action-hooks)
+        '(my-visual-replace-from-embark))
+  (cl-defun my-visual-replace-from-embark (&rest args &key run &allow-other-keys)
+    (apply run
+           (plist-put args :action
+                      (lambda (from-string)
+                        (interactive "MTarget: ")
+                        (require 'visual-replace)
+                        (apply #'visual-replace
+                               (visual-replace-read
+                                (visual-replace-make-args
+                                 :from from-string
+				 :to ""
+				 :query t
+                                 :word (and current-prefix-arg (not (eq current-prefix-arg '-)))))
+			       )))))
+
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
@@ -1067,6 +1086,25 @@ targets."
   (add-hook 'c-ts-mode-hook #'my-setup-c-ts-mode)
   ;; Do we need to add c++ separately?
   (add-hook 'c++-ts-mode-hook #'my-setup-c-ts-mode))
+
+(use-package visual-replace
+  :defer t
+  :bind (("M-%" . my/visual-query-replace)
+         :map isearch-mode-map
+         ("M-%" . visual-replace-from-isearch))
+  :config
+  (setq visual-replace-min-length 0)
+
+  (define-key visual-replace-mode-map (kbd "<escape>")
+              visual-replace-secondary-mode-map)
+
+  (defun my/visual-query-replace (args ranges)
+    "Like visual-replace but defaults to query mode, like query-replace"
+    (interactive (visual-replace-read (visual-replace-make-args
+                                       :query t
+                                       :word (and current-prefix-arg (not (eq current-prefix-arg '-))))))
+    (visual-replace args ranges))
+  )
 
 ;; This is valid after emacs-31. We use this in WSL side.
 ;;(use-package c-ts-mode
