@@ -16,8 +16,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(fancy-dabbrev consult-dir multiple-cursors modus-themes use-package which-key embark-consult embark consult marginalia orderless vertico rg projectile avy dumb-jump smartscan rainbow-delimiters highlight-numbers gcmh buffer-move))
  '(custom-safe-themes
    '("d015f7295925398145c42285e2ea4bb438d449d36e2b10ba0650024862ec93a8"
      "62097dbc0924e2b42f9eaeead73fc2c12cf7b579c214bbb5e755d4f2391ffc2f"
@@ -28,7 +26,11 @@
      "ccdc42b444da0b62c25850da75f59186319ee22ddfd153ffc9f7eb4e59652fc9"
      "7887cf8b470098657395502e16809523b629249060d61607c2225d2ef2ad59f5"
      default))
- )
+ '(package-selected-packages
+   '(avy buffer-move consult consult-dir dumb-jump embark embark-consult
+	 fancy-dabbrev gcmh highlight-numbers marginalia modus-themes
+	 multiple-cursors orderless projectile rainbow-delimiters rg
+	 smartscan use-package vertico visual-replace which-key)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -907,24 +909,8 @@ targets."
   (advice-add #'embark-completing-read-prompter
               :around #'embark-hide-which-key-indicator)
 
-  (setf (alist-get 'my/visual-query-replace embark-pre-action-hooks)
-        '(embark--beginning-of-target embark--unmark-target))
-  (setf (alist-get 'my/visual-query-replace embark-around-action-hooks)
-        '(my-visual-replace-from-embark))
-  (cl-defun my-visual-replace-from-embark (&rest args &key run &allow-other-keys)
-    (apply run
-           (plist-put args :action
-                      (lambda (from-string)
-                        (interactive "MTarget: ")
-                        (require 'visual-replace)
-                        (apply #'visual-replace
-                               (visual-replace-read
-                                (visual-replace-make-args
-                                 :from from-string
-				 :to ""
-				 :query t
-                                 :word (and current-prefix-arg (not (eq current-prefix-arg '-)))))
-			       )))))
+  (add-to-list 'embark-target-injection-hooks
+               '(my/visual-query-replace embark--allow-edit (lambda (&rest _) (visual-replace-toggle-query) (visual-replace-tab))))
 
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
@@ -1088,7 +1074,8 @@ targets."
   (add-hook 'c++-ts-mode-hook #'my-setup-c-ts-mode))
 
 (use-package visual-replace
-  :defer t
+  :defer nil
+  :ensure t
   :bind (("M-%" . my/visual-query-replace)
          :map isearch-mode-map
          ("M-%" . visual-replace-from-isearch))
@@ -1105,6 +1092,34 @@ targets."
                                        :word (and current-prefix-arg (not (eq current-prefix-arg '-))))))
     (visual-replace args ranges))
   )
+
+;; This is useful for code blocks in org mode. Idk how to use tree-sitter in org mode for code blocks.
+(defun my-c-mode-common-hook ()
+  ;; my customizations for all of c-mode, c++-mode, objc-mode, java-mode
+  (c-set-offset 'substatement-open 0)
+  (c-set-offset 'statement-cont 0)
+  ;; other customizations can go here
+  
+  (c-set-offset 'inextern-lang 0)
+  
+  (setq c-tab-always-indent t)
+  (setq c-basic-offset 4)                  ;; Default is 2
+  (setq c-indent-level 4)                  ;; Default is 2
+  (c-set-offset 'case-label '+)       ;; for switch-case
+  (c-set-offset 'statement-case-intro 0)
+  (c-set-offset 'statement-case-open 0)
+  (c-set-offset 'brace-list-open 0)      ;; open brace of an enum or static array list
+  (c-set-offset 'brace-list-close 0)      ;; open brace of an enum or static array list
+  (c-set-offset 'brace-list-intro '+)      ;; first line in an enum or static array list
+  (c-set-offset 'brace-list-entry 0)      ;; subsequent lines in an enum or static array
+  
+  (setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60))
+  (setq tab-width 4)
+  (setq indent-tabs-mode nil)  ; use spaces only if nil
+  (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
+  )
+
+(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 
 ;; This is valid after emacs-31. We use this in WSL side.
 ;;(use-package c-ts-mode
