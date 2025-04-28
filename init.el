@@ -689,6 +689,7 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   (setf (alist-get ?. avy-dispatch-alist) 'avy-action-embark))
 
 (use-package rg
+  :ensure t
   :defer t
   :config
   ;; We need to add gnu/linux to rg.el:311 as a system-type because
@@ -1003,16 +1004,19 @@ targets."
   :config
   (defun my-custom-c-ts-indent-rules ()
     "Override the built-in BSD indentation style with some additional rules"
-    `((c
-      ((node-is "field_declaration_list") parent-bol 0)
-      ((node-is "enumerator_list") parent-bol 0)
-      ((node-is "compound_statement") parent-bol 0)
-      ((match "case_statement" "compound_statement") parent-bol c-ts-mode-indent-offset)
-      ;; For top level initializer_list
-      ((and (node-is "initializer_list") (not (parent-is "initializer_list"))) parent-bol 0)
-      ;; For nested initializer_list
-      ((and (node-is "initializer_list") (parent-is "initializer_list")) parent c-ts-mode-indent-offset)
-      ,@(alist-get 'c treesit-simple-indent-rules))))
+    (let ((rules
+           '(
+	     ((node-is "field_declaration_list") parent-bol 0)
+	     ((node-is "enumerator_list") parent-bol 0)
+	     ((and (node-is "compound_statement") (parent-is "compound_statement")) parent-bol c-ts-mode-indent-offset)
+	     ((node-is "compound_statement") parent-bol 0)
+	     ((match "case_statement" "compound_statement") parent-bol c-ts-mode-indent-offset)
+	     ;; For top level initializer_list
+	     ((and (node-is "initializer_list") (not (parent-is "initializer_list"))) parent-bol 0)
+	     ;; For nested initializer_list
+	     ((and (node-is "initializer_list") (parent-is "initializer_list")) parent c-ts-mode-indent-offset))))
+      `((c ,@rules ,@(alist-get 'c treesit-simple-indent-rules))
+	(cpp ,@rules ,@(alist-get 'cpp treesit-simple-indent-rules)))))
 
   (defun c-ts-mode--declarator-name (node)
     "Extract the name from a typedef node."
@@ -1050,7 +1054,6 @@ targets."
 
   (defun my-setup-c-ts-mode ()
     "Setup custom indentation for `c-ts-mode`."
-
     (setq-local treesit-simple-imenu-settings
 		'(("enum" "\\`enum_specifier\\'" nil nil)
 		  ("struct" "\\`struct_specifier\\'" nil nil)
@@ -1065,7 +1068,13 @@ targets."
     
     (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
     (setq-local treesit-simple-indent-rules (my-custom-c-ts-indent-rules))
-    (setq-local c-ts-common-list-indent-style 'simple)
+
+    (cond
+     ((derived-mode-p 'c-ts-mode)
+      (setq-local c-ts-common-list-indent-style 'simple))
+     ((derived-mode-p 'c++-ts-mode)
+      (setq-local c++-ts-common-list-indent-style 'simple)))
+    
     (setq-local treesit-font-lock-settings
   		(append treesit-font-lock-settings my/ts-font-lock-settings)))
 
