@@ -104,11 +104,12 @@
    `(font-lock-property-use-face  ((,class :foreground ,(monoglow-blend (monoglow-color :gray7) 0.80 (monoglow-color :bg)))))
 
    ;; UI ----------------------------------------------------------------------
-   `(mode-line            ((,class (:background ,(monoglow-color :modeline)
-                                               :foreground ,(monoglow-color :fg)
-                                               )))) ;; :box (:line-width -1 :style released-button)
-   `(mode-line-inactive   ((,class (:background ,(monoglow-blend (monoglow-color :modeline) 0.95 (monoglow-color :bg))
-                                                :foreground ,(monoglow-color :gray4)))))
+   `(mode-line            ((,class (:foreground ,(monoglow-color :fg) :background ,(monoglow-color :modeline)))))
+   `(mode-line-inactive   ((,class ( :foreground ,(monoglow-color :gray4) :background ,(monoglow-blend (monoglow-color :modeline) 0.95 (monoglow-color :bg))))))
+   
+   `(nano-modeline-active     ((,class (:foreground ,(monoglow-color :fg) :background ,(monoglow-color :modeline)))))
+   `(nano-modeline-status     ((,class (:foreground ,(monoglow-color :glow)))))
+   `(nano-modeline-inactive   ((,class (:foreground ,(monoglow-color :gray4) :background ,(monoglow-blend (monoglow-color :modeline) 0.95 (monoglow-color :bg))))))
 
    `(minibuffer-prompt ((,class :foreground ,(monoglow-color :glow))))
    
@@ -124,14 +125,15 @@
    `(isearch                    ((,class :foreground ,(monoglow-color :bg) :background ,(monoglow-color :glow))))
    `(lazy-highlight             ((,class :background ,(monoglow-color :bg) :underline t)))
 
+   `(completions-annotations    ((,class :foreground ,(monoglow-color :gray4) :slant italic :underline nil)))
    `(link                       ((,class :foreground ,(monoglow-color :glow))))
    `(match                      ((,class :foreground ,(monoglow-color :glow))))
    `(success                    ((,class :foreground ,(monoglow-color :glow) :underline t)))
-
+   
    `(orderless-match-face-0     ((,class :foreground ,(monoglow-color :glow))))
 
    `(which-key-key-face         ((,class :foreground ,(monoglow-color :glow))))
-   `(help-keybinding            ((,class :foreground ,(monoglow-color :glow))))
+   `(help-key-binding           ((,class :foreground ,(monoglow-color :glow))))
 
    ;; Org-mode ----------------------------------------------------------------
    `(org-level-1 ((,class (:foreground ,(monoglow-color :glow) :weight bold :height 1.2))))

@@ -160,6 +160,10 @@
             (push library libraries-loaded))))))
 
   (my-load-all-in-directory '"~/.emacs.d/others/")
+  (setq nano-modeline-position #'nano-modeline-footer)
+  (setq-default mode-line-format nil)
+  (add-hook 'prog-mode-hook #'nano-modeline-prog-mode)
+  (nano-modeline-text-mode t)
 
   :bind (
 	 ("C-z"       . undo)
@@ -214,8 +218,8 @@
   (org-babel-do-load-languages
    'org-babel-load-languages '((C . t)))
 
-  ;;(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-  ;;(load-theme 'nano t)
+  (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+  (load-theme 'monoglow t)
 
   (defun reset-emacs ()
     "Reset emacs."
@@ -469,21 +473,21 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   (add-hook 'buffer-list-update-hook 'my-update-mode-line-buffer-identification)
   
   (defun my-theme-customizations ()
-    (set-face-attribute 'window-divider nil :foreground (face-background 'default) :background (face-background 'default))
-    (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
-    (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))
-    (set-face-attribute 'font-lock-variable-name-face nil :foreground (face-foreground 'default))
+    ;; (set-face-attribute 'window-divider nil :foreground (face-background 'default) :background (face-background 'default))
+    ;; (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
+    ;; (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))
+    ;; (set-face-attribute 'font-lock-variable-name-face nil :foreground (face-foreground 'default))
     
-    (face-spec-set 'ansi-color-bright-white
-  		   '((t (:background "gray55" :foreground "gray55"))))
+    ;; (face-spec-set 'ansi-color-bright-white
+    ;;     	   '((t (:background "gray55" :foreground "gray55"))))
     
-    (face-spec-set 'mode-line
-  		   '((t (:box (:style released-button)))))
+    ;; (face-spec-set 'mode-line
+    ;;     	   '((t (:box (:style released-button)))))
     
-    (with-eval-after-load 'fancy-dabbrev
-      (set-face-attribute 'fancy-dabbrev-preview-face nil :background (face-background 'hl-line) :foreground (face-foreground 'default))
-      (set-face-attribute 'fancy-dabbrev-menu-face nil :background (face-background 'default) :foreground (face-foreground 'default))
-      (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face)))
+    ;; (with-eval-after-load 'fancy-dabbrev
+    ;;   (set-face-attribute 'fancy-dabbrev-preview-face nil :background (face-background 'hl-line) :foreground (face-foreground 'default))
+    ;;   (set-face-attribute 'fancy-dabbrev-menu-face nil :background (face-background 'default) :foreground (face-foreground 'default))
+    ;;   (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face)))
     )
 
   ;; This hook is called after emacsclient creates a frame.
@@ -495,68 +499,68 @@ This is the same as using \\[set-mark-command] with the prefix argument."
       (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
   )
 
-(use-package modus-themes
-  :ensure t
-  :config
-  (setq modus-themes-custom-auto-reload nil
-	modus-themes-to-toggle '(modus-operandi modus-vivendi)
-	modus-themes-italic-constructs t
-	modus-themes-bold-constructs nil
-	modus-themes-completions '((t . (extrabold)))
-	modus-themes-prompts nil)
+;; (use-package modus-themes
+;;   :ensure t
+;;   :config
+;;   (setq modus-themes-custom-auto-reload nil
+;; 	modus-themes-to-toggle '(modus-operandi modus-vivendi)
+;; 	modus-themes-italic-constructs t
+;; 	modus-themes-bold-constructs nil
+;; 	modus-themes-completions '((t . (extrabold)))
+;; 	modus-themes-prompts nil)
 
-  (setq modus-themes-common-palette-overrides
-	'((cursor magenta-cooler)
-          ;; Make the fringe invisible.
-          (fringe unspecified)
-          ;; Make line numbers less intense and add a shade of cyan
-          ;; for the current line number.
-          (fg-line-number-inactive "gray50")
-          (fg-line-number-active cyan-cooler)
-          (bg-line-number-inactive unspecified)
-          (bg-line-number-active unspecified)
-          ;; Make the current line of `hl-line-mode' a fine shade of
-          ;; gray (though also see my `lin' package).
-          ;;(bg-hl-line bg-dim)
-          ;; Make the region have a cyan-green background with no
-          ;; specific foreground (use foreground of underlying text).
-          ;; "bg-sage" refers to Salvia officinalis, else the common
-          ;; sage.
-          (bg-region bg-sage)
-          (fg-region unspecified)
-          ;; Make matching parentheses a shade of magenta.  It
-          ;; complements the region nicely.
-          (bg-paren-match bg-magenta-intense)
-          ;; Make the active mode line a fine shade of lavender
-          ;; (purple) and tone down the gray of the inactive mode
-          ;; lines.
-          (bg-mode-line-active bg-lavender)
-          (border-mode-line-active bg-lavender)
+;;   (setq modus-themes-common-palette-overrides
+;; 	'((cursor magenta-cooler)
+;;           ;; Make the fringe invisible.
+;;           (fringe unspecified)
+;;           ;; Make line numbers less intense and add a shade of cyan
+;;           ;; for the current line number.
+;;           (fg-line-number-inactive "gray50")
+;;           (fg-line-number-active cyan-cooler)
+;;           (bg-line-number-inactive unspecified)
+;;           (bg-line-number-active unspecified)
+;;           ;; Make the current line of `hl-line-mode' a fine shade of
+;;           ;; gray (though also see my `lin' package).
+;;           ;;(bg-hl-line bg-dim)
+;;           ;; Make the region have a cyan-green background with no
+;;           ;; specific foreground (use foreground of underlying text).
+;;           ;; "bg-sage" refers to Salvia officinalis, else the common
+;;           ;; sage.
+;;           (bg-region bg-sage)
+;;           (fg-region unspecified)
+;;           ;; Make matching parentheses a shade of magenta.  It
+;;           ;; complements the region nicely.
+;;           (bg-paren-match bg-magenta-intense)
+;;           ;; Make the active mode line a fine shade of lavender
+;;           ;; (purple) and tone down the gray of the inactive mode
+;;           ;; lines.
+;;           (bg-mode-line-active bg-lavender)
+;;           (border-mode-line-active bg-lavender)
 
-          (bg-mode-line-inactive bg-dim)
-          (border-mode-line-inactive bg-inactive)
-          ;; Make the prompts a shade of magenta, to fit in nicely with
-          ;; the overall blue-cyan-purple style of the other overrides.
-          ;; Add a nuanced background as well.
-          (bg-prompt bg-magenta-nuanced)
-          (fg-prompt magenta-cooler)
-          ;; Tweak some more constructs for stylistic constistency.
-          (name blue-warmer)
-          (identifier magenta-faint)
-          (keybind magenta-cooler)
-          (accent-0 magenta-cooler)
-          (accent-1 cyan-cooler)
-          (accent-2 blue-warmer)
-          (accent-3 red-cooler)))
+;;           (bg-mode-line-inactive bg-dim)
+;;           (border-mode-line-inactive bg-inactive)
+;;           ;; Make the prompts a shade of magenta, to fit in nicely with
+;;           ;; the overall blue-cyan-purple style of the other overrides.
+;;           ;; Add a nuanced background as well.
+;;           (bg-prompt bg-magenta-nuanced)
+;;           (fg-prompt magenta-cooler)
+;;           ;; Tweak some more constructs for stylistic constistency.
+;;           (name blue-warmer)
+;;           (identifier magenta-faint)
+;;           (keybind magenta-cooler)
+;;           (accent-0 magenta-cooler)
+;;           (accent-1 cyan-cooler)
+;;           (accent-2 blue-warmer)
+;;           (accent-3 red-cooler)))
 
-  ;; Load the theme of your choice.
-  (load-theme 'modus-vivendi)
+;;   ;; Load the theme of your choice.
+;;   (load-theme 'modus-vivendi)
 
-  ;; Apply customizations after theme loads
-  (add-hook 'modus-themes-after-load-theme-hook #'my-theme-customizations)
+;;   ;; Apply customizations after theme loads
+;;   (add-hook 'modus-themes-after-load-theme-hook #'my-theme-customizations)
 
-  ;; Apply immediately after loading theme
-  (my-theme-customizations))
+;;   ;; Apply immediately after loading theme
+;;   (my-theme-customizations))
 
 (use-package gcmh
   :ensure t
@@ -596,10 +600,11 @@ This is the same as using \\[set-mark-command] with the prefix argument."
 
 (use-package smartscan
   :ensure t
+  :hook (prog-mode . smartscan-mode)
   :bind (("C-M-n" . smartscan-symbol-go-forward)
 	 ("C-M-p" . smartscan-symbol-go-backward))
-  :config
-  (smartscan-mode t))
+  :bind* (("M-n" . forward-paragraph)
+          ("M-p" . backward-paragraph)))
 
 (use-package buffer-move
   :ensure t
@@ -1158,6 +1163,7 @@ targets."
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 
 (use-package expand-region
+  :ensure t
   :bind ("C-," . er/expand-region))
 
 ;; This is valid after emacs-31. We use this in WSL side.
