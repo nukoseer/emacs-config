@@ -80,7 +80,7 @@
 
   (setq default-frame-alist
 	(append (list
-		 '(font . "Iosevka Fixed-12")
+		 '(font . "IosevkaTerm NFM-12") ;; "Iosevka Fixed-12"
 		 '(internal-border-width . 0)
 		 '(left-fringe  . 12)
 		 '(right-fringe . 12))))
@@ -105,6 +105,8 @@
   (setq lexical-binding t)
 
   (setq switch-to-buffer-obey-display-actions t)
+
+  (setq-default indent-tabs-mode nil)
 
   (defun running-in-wsl-p ()
     "Check if Emacs is running inside WSL by environment variables."
@@ -185,7 +187,7 @@
          ("<f3>"      . generate)
 	 ("C-x w"     . window-toggle-side-windows)
 	 ("<escape>"  . window-toggle-side-windows)
-	 ("C-,"       . mark-sexp)
+	 ;;("C-,"       . mark-sexp)
 	 ("C-x j"     . previous-buffer)
 	 ("C-x l"     . next-buffer)
 	 ("M-n"       . forward-paragraph)
@@ -302,7 +304,7 @@
     (insert "// NOTE: "))
 
   ;; highlighting for TODO and NOTE
-  (setq fixme-modes '(c-mode c-ts-mode c++-mode c++-ts-mode emacs-lisp-mode))
+  (setq fixme-modes '(c-mode c++-mode c-ts-mode c++-ts-mode emacs-lisp-mode))
   (make-face 'font-lock-fixme-face)
   (make-face 'font-lock-note-face)
   (make-face 'font-lock-important-face)
@@ -310,10 +312,10 @@
   (mapc (lambda (mode)
 	  (font-lock-add-keywords
 	   mode
-	   '(("\\<\\(TODO\\)" 1 'font-lock-fixme-face t)
-             ("\\<\\(NOTE\\)" 1 'font-lock-note-face t)
-	     ("\\<\\(IMPORTANT\\)" 1 'font-lock-important-face t)
-	     ("\\<\\(STUDY\\)" 1 'font-lock-study-face t))))
+	   '(("\\<\\(TODO:\\)" 1 'font-lock-fixme-face t)
+             ("\\<\\(NOTE:\\)" 1 'font-lock-note-face t)
+	     ("\\<\\(IMPORTANT:\\)" 1 'font-lock-important-face t)
+	     ("\\<\\(STUDY:\\)" 1 'font-lock-study-face t))))
 	fixme-modes)
   (modify-face 'font-lock-fixme-face "Red" nil nil t nil nil nil nil)
   (modify-face 'font-lock-note-face "Dark Green" nil nil t nil nil nil nil)
@@ -321,8 +323,15 @@
   (modify-face 'font-lock-study-face "Orange" nil nil t nil nil nil nil)
 
   ;; find project root, build, run
-  (setq project-base-bat "build.bat")
-  (setq project-base-sh  "./build.sh")
+  (if (running-in-wsl-p)
+      (progn
+	(setq project-base-bat "./build.sh")
+	(setq project-base-run-bat "./run.sh"))
+    (progn
+      (setq project-base-bat "build.bat")
+      (setq project-base-run-bat "run.bat")))
+  
+  (setq project-base-sh "./build.sh")
   (setq compilation-directory-locked nil)
 
   (defun find-project-directory-recursive ()
@@ -367,7 +376,7 @@
   (defun run ()
     "Run the current build."
     (interactive)
-    (if (find-project-directory) (compile "run.bat"))
+    (if (find-project-directory) (compile project-base-run-bat))
     (other-window 1))
 
   ;; We override these 2 functions to prevent pulsing after jumps.
@@ -481,6 +490,9 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   (add-hook 'server-after-make-frame-hook '(lambda ()
 					     (startup-screen)
 					     (my-theme-customizations)))
+  (with-eval-after-load 'tramp
+    (with-eval-after-load 'compile
+      (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
   )
 
 (use-package modus-themes
@@ -620,6 +632,19 @@ This is the same as using \\[set-mark-command] with the prefix argument."
                 tramp-file-name-regexp))
   (setq tramp-verbose 0)
 
+  (setq remote-file-name-inhibit-locks t
+        tramp-use-scp-direct-remote-copying t
+        remote-file-name-inhibit-auto-save-visited t)
+  (setq tramp-copy-size-limit (* 1024 1024)) ;; 1MB
+
+  (connection-local-set-profile-variables
+   'remote-direct-async-process
+   '((tramp-direct-async-process . t)))
+
+  (connection-local-set-profiles
+   '(:application tramp :protocol "scp")
+   'remote-direct-async-process)
+
   ;;(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   ;;(customize-set-variable 'tramp-syntax 'simplified)
   )
@@ -655,7 +680,7 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   (defun dired-back-to-top ()
     (interactive)
     (beginning-of-buffer)
-    (dired-next-line (if dired-omit-mode 2 4)))
+    (dired-next-line (if dired-omit-mode 1 3)))
 
   (defun dired-jump-to-bottom ()
     (interactive)
@@ -708,8 +733,8 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   :defer t
   :config
   (projectile-mode t)
-  (setq projectile-generic-command "fd . -0 --type f --color=never --full-path --strip-cwd-prefix")
-  (setq projectile-git-fd-args "-H -0 -E .git -tf --strip-cwd-prefix --color=never")
+  (setq projectile-generic-command "fd . -0 --type f --color=never --full-path") ;; --strip-cwd-prefix
+  (setq projectile-git-fd-args "-H -0 -E .git -tf --color=never") ;; --strip-cwd-prefix
 
   (add-to-list 'projectile-globally-ignored-directories "*.svg")
 
@@ -870,6 +895,8 @@ This is the same as using \\[set-mark-command] with the prefix argument."
 
   :config
 
+  (add-to-list 'embark-pre-action-hooks '(:always embark--unmark-target))
+  
   (setq embark-help-key ".")
 
   (defun embark-which-key-indicator ()
@@ -1130,6 +1157,9 @@ targets."
 
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 
+(use-package expand-region
+  :bind ("C-," . er/expand-region))
+
 ;; This is valid after emacs-31. We use this in WSL side.
 ;;(use-package c-ts-mode
 ;;  :init
@@ -1194,3 +1224,10 @@ targets."
 ;; M-s w isearch-forward-word
 
 ;; C-x r N rectangle line numbers
+
+;; Dired:
+;; w copy relative file name
+;; M-0 w copy absolute file name
+;; * c change old mark to new mark
+;; M-<backspace> delete mark
+;; i insert subdir
