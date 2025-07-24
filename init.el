@@ -26,6 +26,7 @@
      "ccdc42b444da0b62c25850da75f59186319ee22ddfd153ffc9f7eb4e59652fc9"
      "7887cf8b470098657395502e16809523b629249060d61607c2225d2ef2ad59f5"
      default))
+ '(org-safe-remote-resources '("\\`https://fniessen\\.github\\.io\\(?:/\\|\\'\\)"))
  '(package-selected-packages
    '(avy buffer-move consult consult-dir dumb-jump embark embark-consult
 	 fancy-dabbrev gcmh highlight-numbers marginalia modus-themes
@@ -568,9 +569,16 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   (gcmh-mode))
 
 (use-package repeat
-  :defer t
   :config
-  (repeat-mode t))
+  (repeat-mode t)
+
+  (defun repeatize (keymap)
+    "Add `repeat-mode' support to a KEYMAP."
+    (map-keymap
+     (lambda (_key cmd)
+       (when (symbolp cmd)
+         (put cmd 'repeat-map keymap)))
+     (symbol-value keymap))))
 
 (use-package recentf
   :init
@@ -761,6 +769,7 @@ This is the same as using \\[set-mark-command] with the prefix argument."
 
   :bind (
 	 ("M-s f" . projectile-find-file)
+	 ("M-s d" . projectile-find-dir)
 	 ("M-s 4 f" . projectile-find-file-other-window)
 	 ("C-x o" . projectile-find-other-file)
 	 ("C-x 4 o" . projectile-find-other-file-other-window)))
@@ -1003,16 +1012,18 @@ targets."
 (use-package treesit
   :init
   (setq treesit-extra-load-path '("~/.emacs.d/tree-sitter/"))
-  ;;(setq treesit-language-source-alist
-  ;; '((c "https://github.com/tree-sitter/tree-sitter-c")
-  ;;   (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
-  ;;   ))
+  (setq treesit-language-source-alist
+   '((c "https://github.com/tree-sitter/tree-sitter-c")
+     (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+     (bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.23.3"))
+     ))
 
   (setq treesit-font-lock-level 4)
   ;;(setq treesit--indent-verbose t)
 
   (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
   (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
+  (add-to-list 'major-mode-remap-alist '(sh-mode . bash-ts-mode))
   :config
   (defface my-ts-number-face
     '((t (:inherit font-lock-constant-face)))
@@ -1165,6 +1176,51 @@ targets."
 (use-package expand-region
   :ensure t
   :bind ("C-," . er/expand-region))
+
+(use-package copilot
+  :ensure t
+  :hook (prog-mode-hook . copilot-mode)
+  :bind (("C-c m" . my/copilot-complete-or-accept)
+         :map copilot-mode-map
+         ("C-c n" . copilot-next-completion)
+         ("C-c p" . copilot-previous-completion)
+         ("C-c l" . my/copilot-accept-completion-by-line))
+  :init
+  (setq copilot-max-char -1)
+  (setq copilot-indent-offset-warning-disable t)
+  :config
+  (defun my/copilot-complete-or-accept ()
+    "Command that either triggers a completion or accepts one if one
+is available. Useful if you tend to hammer your keys like I do."
+    (interactive)
+    (if (copilot--overlay-visible)
+        (progn
+          (copilot-accept-completion)
+          (open-line 1)
+          (next-line))
+      (copilot-complete)))
+  
+  (defun my/copilot-accept-completion-by-line ()
+    (interactive)
+    (progn
+      (copilot-accept-completion-by-line)
+      (if (not (string-match-p "\\`\\s-*$" (thing-at-point 'line)))
+          (progn
+            (copilot-clear-overlay)
+            (open-line 1)
+            (forward-line)
+            (copilot-complete)
+            ))))
+
+  (defvar-keymap copilot-repeat-map
+    :repeat t
+    "n" #'copilot-next-completion
+    "p" #'copilot-previous-completion
+    "l" #'my/copilot-accept-completion-by-line
+    "m" #'my/copilot-complete-or-accept)
+
+  (repeatize 'copilot-repeat-map)
+  )
 
 ;; This is valid after emacs-31. We use this in WSL side.
 ;;(use-package c-ts-mode

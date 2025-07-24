@@ -98,7 +98,7 @@
    `(font-lock-number-face        ((,class (:foreground ,(monoglow-color :gray7)))))
    `(font-lock-variable-name-face ((,class (:foreground ,(monoglow-color :gray8)))))
    `(font-lock-warning-face       ((,class (:foreground ,(monoglow-color :gray4) :weight bold))))
-   `(font-lock-operator-face      ((,class (:foreground ,(monoglow-color :glow)))))
+   `(font-lock-operator-face      ((,class (:foreground ,(monoglow-color :glow) :weight bold))))
    `(font-lock-preprocessor-face  ((,class (:foreground ,(monoglow-blend (monoglow-color :gray5) 0.70 (monoglow-color :fg))))))
    ;;`(font-lock-property-name-face  ((,class :foreground ,(monoglow-color :glow))))
    `(font-lock-property-use-face  ((,class :foreground ,(monoglow-blend (monoglow-color :gray7) 0.80 (monoglow-color :bg)))))
@@ -134,6 +134,10 @@
 
    `(which-key-key-face         ((,class :foreground ,(monoglow-color :glow))))
    `(help-key-binding           ((,class :foreground ,(monoglow-color :glow))))
+
+   `(fancy-dabbrev-preview-face   ((,class :underline t)))
+   `(fancy-dabbrev-menu-face      ((,class :foreground ,(monoglow-color :gray7) :background ,(monoglow-color :modeline)))) ;; :box (:line-width -1 :color ,(monoglow-color :gray4))
+   `(fancy-dabbrev-selection-face ((,class :foreground ,(monoglow-color :black) :background ,(monoglow-color :glow) :weight bold)))
 
    ;; Org-mode ----------------------------------------------------------------
    `(org-level-1 ((,class (:foreground ,(monoglow-color :glow) :weight bold :height 1.2))))
