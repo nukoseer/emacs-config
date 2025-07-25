@@ -1,4 +1,10 @@
 ;;; monoglow-theme.el --- Mono Glow-inspired theme  -*- lexical-binding: t; -*-
+
+;; Author: nukoseer <uygarkoseer@gmail.com>
+;; Version: 0.1
+;; Package-Requires: ((emacs "31.0"))
+;; Keywords: faces, theme
+
 ;;; Commentary:
 ;; A dark, near-monochrome theme with one bright “glow” accent colour.
 ;; This is a starting template you can tweak and iterate on.
@@ -123,7 +129,7 @@
    `(show-paren-match           ((,class :foreground ,(monoglow-color :glow))))
 
    `(isearch                    ((,class :foreground ,(monoglow-color :bg) :background ,(monoglow-color :glow))))
-   `(lazy-highlight             ((,class :background ,(monoglow-color :bg) :underline t)))
+   `(lazy-highlight             ((,class :background ,(monoglow-color :gray4))))
 
    `(completions-annotations    ((,class :foreground ,(monoglow-color :gray4) :slant italic :underline nil)))
    `(link                       ((,class :foreground ,(monoglow-color :glow))))
@@ -139,12 +145,12 @@
    `(fancy-dabbrev-menu-face      ((,class :foreground ,(monoglow-color :gray7) :background ,(monoglow-color :modeline)))) ;; :box (:line-width -1 :color ,(monoglow-color :gray4))
    `(fancy-dabbrev-selection-face ((,class :foreground ,(monoglow-color :black) :background ,(monoglow-color :glow) :weight bold)))
 
-   ;; Org-mode ----------------------------------------------------------------
-   `(org-level-1 ((,class (:foreground ,(monoglow-color :glow) :weight bold :height 1.2))))
-   `(org-level-2 ((,class (:foreground ,(monoglow-color :blue) :weight bold :height 1.1))))
-   `(org-level-3 ((,class (:foreground ,(monoglow-color :cyan) :weight bold))))
-   `(org-code    ((,class (:foreground ,(monoglow-color :yellow)))))
-   `(org-block   ((,class (:background ,(monoglow-color :bg-alt) :extend t))))
+   `(diff-header      ((,class :foreground ,(monoglow-color :gray6) :background ,(monoglow-color :bg))))
+   `(diff-file-header ((,class :foreground ,(monoglow-color :gray6) :background ,(monoglow-color :bg))))
+
+   `(vundo-highlight ((,class :foreground ,(monoglow-color :glow))))
+   
+   `(embark-target ((,class :background ,(monoglow-color :gray3))))
    ))
 
 ;;(defun my/unhighlight-dot ()
