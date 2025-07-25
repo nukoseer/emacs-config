@@ -1177,50 +1177,57 @@ targets."
   :ensure t
   :bind ("C-," . er/expand-region))
 
-(use-package copilot
+(use-package vundo
   :ensure t
-  :hook (prog-mode-hook . copilot-mode)
-  :bind (("C-c m" . my/copilot-complete-or-accept)
-         :map copilot-mode-map
-         ("C-c n" . copilot-next-completion)
-         ("C-c p" . copilot-previous-completion)
-         ("C-c l" . my/copilot-accept-completion-by-line))
   :init
-  (setq copilot-max-char -1)
-  (setq copilot-indent-offset-warning-disable t)
-  :config
-  (defun my/copilot-complete-or-accept ()
-    "Command that either triggers a completion or accepts one if one
-is available. Useful if you tend to hammer your keys like I do."
-    (interactive)
-    (if (copilot--overlay-visible)
-        (progn
-          (copilot-accept-completion)
-          (open-line 1)
-          (next-line))
-      (copilot-complete)))
-  
-  (defun my/copilot-accept-completion-by-line ()
-    (interactive)
-    (progn
-      (copilot-accept-completion-by-line)
-      (if (not (string-match-p "\\`\\s-*$" (thing-at-point 'line)))
-          (progn
-            (copilot-clear-overlay)
-            (open-line 1)
-            (forward-line)
-            (copilot-complete)
-            ))))
-
-  (defvar-keymap copilot-repeat-map
-    :repeat t
-    "n" #'copilot-next-completion
-    "p" #'copilot-previous-completion
-    "l" #'my/copilot-accept-completion-by-line
-    "m" #'my/copilot-complete-or-accept)
-
-  (repeatize 'copilot-repeat-map)
+  ;;(setq vundo-compact-display t)
+  (setq vundo-glyph-alist vundo-unicode-symbols)
   )
+
+;; (use-package copilot
+;;   :ensure t
+;;   :hook (prog-mode-hook . copilot-mode)
+;;   :bind (("C-c m" . my/copilot-complete-or-accept)
+;;          :map copilot-mode-map
+;;          ("C-c n" . copilot-next-completion)
+;;          ("C-c p" . copilot-previous-completion)
+;;          ("C-c l" . my/copilot-accept-completion-by-line))
+;;   :init
+;;   (setq copilot-max-char -1)
+;;   (setq copilot-indent-offset-warning-disable t)
+;;   :config
+;;   (defun my/copilot-complete-or-accept ()
+;;     "Command that either triggers a completion or accepts one if one
+;; is available. Useful if you tend to hammer your keys like I do."
+;;     (interactive)
+;;     (if (copilot--overlay-visible)
+;;         (progn
+;;           (copilot-accept-completion)
+;;           (open-line 1)
+;;           (next-line))
+;;       (copilot-complete)))
+  
+;;   (defun my/copilot-accept-completion-by-line ()
+;;     (interactive)
+;;     (progn
+;;       (copilot-accept-completion-by-line)
+;;       (if (not (string-match-p "\\`\\s-*$" (thing-at-point 'line)))
+;;           (progn
+;;             (copilot-clear-overlay)
+;;             (open-line 1)
+;;             (forward-line)
+;;             (copilot-complete)
+;;             ))))
+
+;;   (defvar-keymap copilot-repeat-map
+;;     :repeat t
+;;     "n" #'copilot-next-completion
+;;     "p" #'copilot-previous-completion
+;;     "l" #'my/copilot-accept-completion-by-line
+;;     "m" #'my/copilot-complete-or-accept)
+
+;;   (repeatize 'copilot-repeat-map)
+;;   )
 
 ;; This is valid after emacs-31. We use this in WSL side.
 ;;(use-package c-ts-mode
