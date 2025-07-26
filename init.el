@@ -1,5 +1,4 @@
 ;; -*- lexical-binding: t; -*-
-(setq native-comp-speed 3) ;; maximum native Elisp speed!
 
 (eval-when-compile
   (require 'use-package))
@@ -17,7 +16,11 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("d015f7295925398145c42285e2ea4bb438d449d36e2b10ba0650024862ec93a8"
+   '("80c5aaa09dfdf6ecd7d70041725563e4c4807a89b5c1ce4f47f236174a7a64c6"
+     "ccc95dff5bbc356d849ea81f7c24c54cb5bc3bae7c297dd158a08116475fd1f0"
+     "7afef88ab9fd8f09161dfaa5c513cefb2b4517e83260dd9749133668cf4bfecc"
+     "b7e9b676351da35874b35b9f1564296474be0d1587fcc2d2eeabc45853dd0671"
+     "d015f7295925398145c42285e2ea4bb438d449d36e2b10ba0650024862ec93a8"
      "62097dbc0924e2b42f9eaeead73fc2c12cf7b579c214bbb5e755d4f2391ffc2f"
      "bc2936e8cd9c3e67623e76672ddf53411e60723e2ed0cad8b4ca59b5a2d80bbf"
      "6a784261d7e9bb651d6b4867b8f3c06ba7fa255a869a0a44ac35290e94776d38"
@@ -29,9 +32,10 @@
  '(org-safe-remote-resources '("\\`https://fniessen\\.github\\.io\\(?:/\\|\\'\\)"))
  '(package-selected-packages
    '(avy buffer-move consult consult-dir dumb-jump embark embark-consult
-	 fancy-dabbrev gcmh highlight-numbers marginalia modus-themes
-	 multiple-cursors orderless projectile rainbow-delimiters rg
-	 smartscan use-package vertico visual-replace which-key)))
+         expreg fancy-dabbrev highlight-numbers marginalia
+         modus-themes monoglow-theme multiple-cursors nano-modeline
+         orderless projectile rainbow-delimiters rg smartscan
+         use-package vertico visual-replace vundo which-key)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -41,21 +45,10 @@
 
 (use-package emacs
   :init
-  (add-hook 'emacs-startup-hook '(lambda ()
-				   (message "Emacs ready in %s with %d garbage collections."
-					    (format "%.2f seconds"
-						    (float-time
-						     (time-subtract after-init-time before-init-time)))
-					    gcs-done)))
 
-  (add-hook 'emacs-lisp-mode-hook '(lambda ()
-				     (local-set-key (kbd "<tab>") #'fancy-dabbrev-expand)
-			             (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
-				     ))
-
-  ;;close git service
-  (setq vc-handled-backends nil)
-
+  (setq-default indent-tabs-mode nil)
+  (setq lexical-binding t)
+  
   (setq dabbrev-case-distinction nil)
   (setq dabbrev-case-fold-search nil)
   (setq dabbrev-case-replace nil)
@@ -73,101 +66,21 @@
   (setq window-divider-default-places 'right-only)
   ;;(setq window-divider-default-right-width 12)
 
-  ;; no ugly button for checkboxes
-  (setq widget-image-enable nil)
-
-  (setq file-name-handler-alist nil)
-  (setq frame-inhibit-implied-resize t)
-
-  (setq default-frame-alist
-	(append (list
-		 '(font . "IosevkaTerm NFM-12") ;; "Iosevka Fixed-12"
-		 '(internal-border-width . 0)
-		 '(left-fringe  . 12)
-		 '(right-fringe . 12))))
-
-  ;; disable auto save mode
-  (setq auto-save-default nil)
-  ;; disable back up
-  (setq make-backup-file-name-function (quote ignore))
-  (setq make-backup-files nil)
-
-  ;; turn off the bell
-  (defun nil-bell ())
-  (setq ring-bell-function 'nil-bell)
-
-  ;; smooth scroll
   (setq scroll-step 3)
 
   ;; always kill *compilation* buffer before new *compilation* start
   (setq compilation-always-kill t)
   (setq compilation-scroll-output t)
 
-  (setq lexical-binding t)
-
   (setq switch-to-buffer-obey-display-actions t)
 
-  (setq-default indent-tabs-mode nil)
+  ;; Enable recursive minibuffers
+  (setq enable-recursive-minibuffers nil)
 
-  (defun running-in-wsl-p ()
-    "Check if Emacs is running inside WSL by environment variables."
-    (getenv "WSL_DISTRO_NAME"))
-  
-  (defun my-comint-path-rewrite (output)
-    "Rewrite Windows-style paths (C:\\) to WSL paths (/mnt/c/) in comint buffers."
-    (let ((start (or comint-last-output-start (point-min))))
-      (save-excursion
-	(goto-char start)
-	;; Replace `C:\` with `/mnt/c/`
-	(while (re-search-forward "C:\\\\" nil t) ;; `nil` for `end` ensures it searches to the updated `point-max`
-          (replace-match "/mnt/c/"))
-	;; Replace all remaining `\` with `/`
-	(goto-char start)
-	(while (re-search-forward "\\\\" nil t)
-          (replace-match "/")))))
+  (setq process-connection-type nil)
+  (setq duplicate-line-final-position 1)
 
-  (if (running-in-wsl-p)
-      (progn
-	(message "Running in WSL!")
-	(setq default-directory "/mnt/c/")
-	(add-hook 'comint-output-filter-functions 'my-comint-path-rewrite))
-    (setq default-directory "C:/"))
-
-  ;; activate fullscreen, open empty buffer and init.el
-  (defun startup-screen ()
-    (if (< (count-windows) 2)
-	(progn
-	  (setq inhibit-startup-message t)
-	  (setq inhibit-splash-screen t)
-	  (setq initial-scratch-message nil)
-	  (toggle-frame-fullscreen)
-	  (switch-to-buffer "*scratch*")
-	  (split-window-right)
-	  (other-window 1)
-	  (find-file "~/.emacs.d/init.el")
-	  (other-window 1))))
-
-  (startup-screen)
-
-  (defun my-load-all-in-directory (dir)
-    "`load' all elisp libraries in directory DIR which are not already loaded."
-    ;;  (interactive "D")
-    (let ((libraries-loaded (mapcar #'file-name-sans-extension
-                                    (delq nil (mapcar #'car load-history)))))
-      (dolist (file (directory-files dir t ".+\\.elc?$"))
-	(let ((library (file-name-sans-extension file)))
-          (unless (member library libraries-loaded)
-            (load library nil t)
-            (push library libraries-loaded))))))
-
-  (my-load-all-in-directory '"~/.emacs.d/others/")
-  (setq nano-modeline-position #'nano-modeline-footer)
-  (setq-default mode-line-format nil)
-  (add-hook 'prog-mode-hook #'nano-modeline-prog-mode)
-  (nano-modeline-text-mode t)
-
-  :bind (
-	 ("C-z"       . undo)
+  :bind (("C-z"       . undo)
 	 ("M-<up>"    . move-line-up)
 	 ("M-<down>"  . move-line-down)
 	 ("C-SPC"     . push-mark-no-activate)
@@ -197,100 +110,43 @@
 	 ("C-x l"     . next-buffer)
 	 ("M-n"       . forward-paragraph)
 	 ("M-p"       . backward-paragraph)
-	 ("C-/"       . duplicate-line))
+	 ("C-/"       . duplicate-line)
+         (:map ctl-x-4-map
+               ("t" . toggle-window-split)))
 
   :config
 
-  (menu-bar-mode 0)
-  (scroll-bar-mode 0)
-  (tool-bar-mode 0)
-  (tooltip-mode 0)
-  (blink-cursor-mode 0)
-  (column-number-mode t)
-  (electric-pair-mode t)
-  (global-visual-line-mode t)
-  (global-hl-line-mode t)
-  (global-so-long-mode t)
-  (global-display-line-numbers-mode 0)
-  (global-auto-revert-mode t)
-  (window-divider-mode t)
-  (global-eldoc-mode 0)
+  (my-load-all-in-directory '"~/.emacs.d/others/")
+  (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+
+  (if (running-in-wsl-p)
+      (progn
+	(message "Running in WSL!")
+	(setq default-directory "/mnt/c/")
+	(add-hook 'comint-output-filter-functions 'my-comint-path-rewrite))
+    (setq default-directory "C:/"))
+
+  (add-hook 'emacs-lisp-mode-hook '(lambda ()
+				     (local-set-key (kbd "<tab>")   #'fancy-dabbrev-expand)
+			             (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
+                                     (local-set-key (kbd "C-c C-c") #'comment-region)
+			             (local-set-key (kbd "C-c C-v") #'uncomment-region)))
+  
+  (add-hook 'prog-mode-hook '(lambda ()
+			       (local-set-key (kbd "<tab>") #'fancy-dabbrev-expand)
+                               (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
+			       (local-set-key (kbd "C-c C-c") #'comment-region)
+			       (local-set-key (kbd "C-c C-v") #'uncomment-region)))
+
+  (add-hook 'asm-mode-hook '(lambda ()
+			      (local-unset-key (kbd ";"))))
+  
+  (load-theme 'monoglow t)
+  (startup-screen)
 
   (org-babel-do-load-languages
    'org-babel-load-languages '((C . t)))
-
-  (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-  (load-theme 'monoglow t)
-
-  (defun reset-emacs ()
-    "Reset emacs."
-    (interactive)
-    (mapc 'kill-buffer (cl-remove-if
-			(lambda (x)
-                          (or
-                           ;; (eq x (current-buffer))
-                           (member (buffer-name x) '("*Messages*" "*scratch*" "init.el"))))
-			(buffer-list)))
-    (unlock-compilation-directory)
-    (delete-other-windows)
-    (switch-to-buffer "*scratch*")
-    (split-window-right)
-    (other-window 1)
-    (find-file "~/.emacs.d/init.el")
-    (other-window 1))
-
-  ;; change window split orientation (horizontal to vertical or opposite)
-  (defun toggle-window-split ()
-    (interactive)
-    (if (= (count-windows) 2)
-	(let* ((this-win-buffer (window-buffer))
-	       (next-win-buffer (window-buffer (next-window)))
-	       (this-win-edges (window-edges (selected-window)))
-	       (next-win-edges (window-edges (next-window)))
-	       (this-win-2nd (not (and (<= (car this-win-edges)
-					   (car next-win-edges))
-				       (<= (cadr this-win-edges)
-					   (cadr next-win-edges)))))
-	       (splitter
-		(if (= (car this-win-edges)
-		       (car (window-edges (next-window))))
-		    'split-window-horizontally
-		  'split-window-vertically)))
-	  (delete-other-windows)
-	  (let ((first-win (selected-window)))
-	    (funcall splitter)
-	    (if this-win-2nd (other-window 1))
-	    (set-window-buffer (selected-window) this-win-buffer)
-	    (set-window-buffer (next-window) next-win-buffer)
-	    (select-window first-win)
-	    (if this-win-2nd (other-window 1))))))
-
-  (define-key ctl-x-4-map "t" 'toggle-window-split)
-
-  ;; move line
-  (defun move-line (n)
-    "Move the current line up or down by N lines."
-    (interactive "p")
-    (setq col (current-column))
-    (beginning-of-line) (setq start (point))
-    (end-of-line) (forward-char) (setq end (point))
-    (let ((line-text (delete-and-extract-region start end)))
-      (forward-line n)
-      (insert line-text)
-      ;; restore point to original column in moved line
-      (forward-line -1)
-      (forward-char col)))
-
-  (defun move-line-up (n)
-    "Move the current line up by N lines."
-    (interactive "p")
-    (move-line (if (null n) -1 (- n))))
-
-  (defun move-line-down (n)
-    "Move the current line down by N lines."
-    (interactive "p")
-    (move-line (if (null n) 1 n)))
-
+  
   ;; Introduce a bottom side window that catches compilations, greps etc.
   (add-to-list 'display-buffer-alist
 	       `(,(rx (| "*compilation*" "*grep*" "*ripgrep*" "*rg*" "*haskell*" "*Async Shell Command*"))
@@ -300,132 +156,11 @@
 		 (window-parameters . ((no-delete-other-windows . t)))
 		 (window-height . 0.25)))
 
-  (defun add-todo ()
-    (interactive)
-    (insert "// TODO: "))
-
-  (defun add-note ()
-    (interactive)
-    (insert "// NOTE: "))
-
-  ;; highlighting for TODO and NOTE
-  (setq fixme-modes '(c-mode c++-mode c-ts-mode c++-ts-mode emacs-lisp-mode))
-  (make-face 'font-lock-fixme-face)
-  (make-face 'font-lock-note-face)
-  (make-face 'font-lock-important-face)
-  (make-face 'font-lock-study-face)
-  (mapc (lambda (mode)
-	  (font-lock-add-keywords
-	   mode
-	   '(("\\<\\(TODO:\\)" 1 'font-lock-fixme-face t)
-             ("\\<\\(NOTE:\\)" 1 'font-lock-note-face t)
-	     ("\\<\\(IMPORTANT:\\)" 1 'font-lock-important-face t)
-	     ("\\<\\(STUDY:\\)" 1 'font-lock-study-face t))))
-	fixme-modes)
-  (modify-face 'font-lock-fixme-face "Red" nil nil t nil nil nil nil)
-  (modify-face 'font-lock-note-face "Dark Green" nil nil t nil nil nil nil)
-  (modify-face 'font-lock-important-face "Orange" nil nil t nil nil nil nil)
-  (modify-face 'font-lock-study-face "Orange" nil nil t nil nil nil nil)
-
-  ;; find project root, build, run
-  (if (running-in-wsl-p)
-      (progn
-	(setq project-base-bat "./build.sh")
-	(setq project-base-run-bat "./run.sh"))
-    (progn
-      (setq project-base-bat "build.bat")
-      (setq project-base-run-bat "run.bat")))
-  
-  (setq project-base-sh "./build.sh")
-  (setq compilation-directory-locked nil)
-
-  (defun find-project-directory-recursive ()
-    "Recursively search for a makefile."
-    (interactive)
-    (if (or (file-exists-p project-base-bat) (file-exists-p project-base-sh)) t
-      (cd "../")
-      (find-project-directory-recursive)))
-
-  (defun lock-compilation-directory ()
-    "The compilation process should NOT hunt for a makefile"
-    (interactive)
-    (setq compilation-directory-locked t)
-    (message "Compilation directory is locked."))
-
-  (defun unlock-compilation-directory ()
-    "The compilation process SHOULD hunt for a makefile"
-    (interactive)
-    (setq compilation-directory-locked nil)
-    (message "Compilation directory is unlocked."))
-
-  (defun find-project-directory ()
-    "Find the project directory."
-    (interactive)
-    (setq find-project-from-directory default-directory)
-    (switch-to-buffer-other-window "*compilation*")
-    (if compilation-directory-locked (cd last-compilation-directory)
-      (lock-compilation-directory)
-      (cd find-project-from-directory)
-      (find-project-directory-recursive)
-      (setq last-compilation-directory default-directory)))
-
-  (defun build ()
-    "Make the current build."
-    (interactive)
-    (if (find-project-directory)
-	(if (file-exists-p project-base-bat)
-	    (compile project-base-bat)
-	  (compile project-base-sh)))
-    (other-window 1))
-
-  (defun run ()
-    "Run the current build."
-    (interactive)
-    (if (find-project-directory) (compile project-base-run-bat))
-    (other-window 1))
-
   ;; We override these 2 functions to prevent pulsing after jumps.
-  (defcustom xref-after-jump-hook '(recenter)
-    "Functions called after jumping to an xref." )
-  (defcustom xref-after-return-hook '()
-    "Functions called after returning to a pre-jump location.")
-
-  (defun push-mark-no-activate ()
-    "Pushes `point' to `mark-ring' and does not activate the region
- Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
-    (interactive)
-    (push-mark (point) t nil)
-    (message "Mark set"))
-
-  (defun jump-to-mark ()
-    "Jumps to the local mark, respecting the `mark-ring' order.
-This is the same as using \\[set-mark-command] with the prefix argument."
-    (interactive)
-    (set-mark-command 1))
-
-  ;;(set-variable 'grep-command "rg --pcre2 -j 8 -H --no-heading --color=always -n -S -e ")
-  ;;(grep-apply-setting
-  ;; 'grep-find-command
-  ;; '("rg --pcre2 -j 8 -H --no-heading --color=always -n -S -e \"\" . -tc -tcpp" . 58)
-  ;; )
-
-  (defun grep-fd (command-args)
-    (interactive
-     (progn
-       (grep-compute-defaults)
-       (if grep-find-command
-	   (if (file-remote-p default-directory)
-	       (list (read-shell-command "Run find (like this): "
-					 '("fd \"\" . -x \"echo\" {}:1:" . 5) 'grep-find-history))
-	     (list (read-shell-command "Run find (like this): "
-				       `(,(format "fd \"\" %S -x cmd /C echo \"{}:1:\"" default-directory) . 5) 'grep-find-history)))
-	 ;; No default was set
-	 (read-string
-          "compile.el: No `grep-find-command' command available. Press RET.")
-	 (list nil))))
-    (when command-args
-      (let ((null-device nil))		; see grep
-	(grep command-args))))
+  ;; (defcustom xref-after-jump-hook '(recenter)
+  ;;   "Functions called after jumping to an xref." )
+  ;; (defcustom xref-after-return-hook '()
+  ;;  "Functions called after returning to a pre-jump location.")
 
   (advice-add 'compile :around
               (lambda (orig-fun command &optional _comint)
@@ -436,68 +171,6 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   (setq minibuffer-prompt-properties
 	'(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-
-  ;; Emacs 28: Hide commands in M-x which do not work in the current mode.
-  ;; Vertico commands are hidden in normal buffers.
-  ;; (setq read-extended-command-predicate
-  ;;       #'command-completion-default-include-p)
-
-  ;; Enable recursive minibuffers
-  (setq enable-recursive-minibuffers t)
-
-  (add-hook 'prog-mode-hook '(lambda ()
-			       (local-set-key (kbd "<tab>") #'fancy-dabbrev-expand)
-			       (local-set-key (kbd "C-c C-c") #'comment-region)
-			       (local-set-key (kbd "C-c C-v") #'uncomment-region)
-			       ))
-
-  (add-hook 'asm-mode-hook '(lambda ()
-			      (local-unset-key (kbd ";"))))
-
-  (setq process-connection-type nil)
-  (setq duplicate-line-final-position 1)
-
-  (defface mode-line-remote
-    '((t (:inherit mode-line-buffer-id :box (:line-width 2 :color "orange"))))
-    "Face for mode line buffer identification in remote buffers."
-    :group 'mode-line)
-
-  (defun my-update-mode-line-buffer-identification ()
-    "Apply a custom face to `mode-line-buffer-identification` for remote buffers only."
-    (setq mode-line-buffer-identification
-          (if (or (and buffer-file-name (file-remote-p buffer-file-name))
-                  (and default-directory (file-remote-p default-directory)))
-              (list (propertize "%b" 'face 'mode-line-remote))
-            (list (propertize "%b" 'face 'mode-line-buffer-id))))
-    )
-
-  (add-hook 'buffer-list-update-hook 'my-update-mode-line-buffer-identification)
-  
-  (defun my-theme-customizations ()
-    ;; (set-face-attribute 'window-divider nil :foreground (face-background 'default) :background (face-background 'default))
-    ;; (set-face-attribute 'window-divider-first-pixel nil :foreground (face-background 'mode-line))
-    ;; (set-face-attribute 'window-divider-last-pixel nil :foreground (face-background 'mode-line))
-    ;; (set-face-attribute 'font-lock-variable-name-face nil :foreground (face-foreground 'default))
-    
-    ;; (face-spec-set 'ansi-color-bright-white
-    ;;     	   '((t (:background "gray55" :foreground "gray55"))))
-    
-    ;; (face-spec-set 'mode-line
-    ;;     	   '((t (:box (:style released-button)))))
-    
-    ;; (with-eval-after-load 'fancy-dabbrev
-    ;;   (set-face-attribute 'fancy-dabbrev-preview-face nil :background (face-background 'hl-line) :foreground (face-foreground 'default))
-    ;;   (set-face-attribute 'fancy-dabbrev-menu-face nil :background (face-background 'default) :foreground (face-foreground 'default))
-    ;;   (set-face-attribute 'fancy-dabbrev-selection-face nil :background (face-background 'region) :foreground (face-foreground 'font-lock-type-face)))
-    )
-
-  ;; This hook is called after emacsclient creates a frame.
-  (add-hook 'server-after-make-frame-hook '(lambda ()
-					     (startup-screen)
-					     (my-theme-customizations)))
-  (with-eval-after-load 'tramp
-    (with-eval-after-load 'compile
-      (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
   )
 
 ;; (use-package modus-themes
@@ -636,6 +309,7 @@ This is the same as using \\[set-mark-command] with the prefix argument."
 (use-package tramp
   :ensure t
   :defer 3
+  :after compile
   :config
   (setq tramp-default-method "plink")
   (setq remote-file-name-inhibit-cache nil)
@@ -658,6 +332,7 @@ This is the same as using \\[set-mark-command] with the prefix argument."
    '(:application tramp :protocol "scp")
    'remote-direct-async-process)
 
+  (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)
   ;;(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   ;;(customize-set-variable 'tramp-syntax 'simplified)
   )
@@ -671,22 +346,28 @@ This is the same as using \\[set-mark-command] with the prefix argument."
 	 ("C-c a" . mc/mark-all-like-this)))
 
 (use-package make-mark-visible
-  :bind (
-	 ("C-c v" . mmv-toggle-mark-visibility)))
+  :bind (("C-c v" . mmv-toggle-mark-visibility)))
 
 (use-package narrow-indirect
   :init
   (setq ni-buf-name-prefix "")
-  (define-key ctl-x-4-map "nd" #'ni-narrow-to-defun-indirect-other-window)
-  (define-key ctl-x-4-map "nn" #'ni-narrow-to-region-indirect-other-window)
-  (define-key ctl-x-4-map "np" #'ni-narrow-to-page-indirect-other-window)
-  )
+  :bind (:map ctl-x-4-map
+              ("nd" . ni-narrow-to-defun-indirect-other-window)
+              ("nn" . ni-narrow-to-region-indirect-other-window)
+              ("np" . ni-narrow-to-page-indirect-other-window)))
 
 (use-package dired
-  :init
-  (setq dired-dwim-target t)
   :hook
   (dired-mode . dired-omit-mode)
+  :init
+  (setq dired-dwim-target t)
+  :bind (:map dired-mode-map
+              ([remap beginning-of-buffer] . dired-back-to-top)
+              ([remap end-of-buffer] . dired-jump-to-bottom)
+              ([remap beginning-of-defun] . dired-back-to-top)
+              ([remap end-of-defun] . dired-jump-to-bottom)
+              ("RET" . dired-find-alternate-file)
+              ("C-x C-j" . (lambda () (interactive) (find-alternate-file ".."))))
   :config
   (put 'dired-find-alternate-file 'disabled nil)
 
@@ -698,15 +379,7 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   (defun dired-jump-to-bottom ()
     (interactive)
     (end-of-buffer)
-    (dired-next-line -1))
-
-  (define-key dired-mode-map (vector 'remap 'beginning-of-buffer) 'dired-back-to-top)
-  (define-key dired-mode-map (vector 'remap 'end-of-buffer) 'dired-jump-to-bottom)
-  (define-key dired-mode-map (vector 'remap 'beginning-of-defun) 'dired-back-to-top)
-  (define-key dired-mode-map (vector 'remap 'end-of-defun) 'dired-jump-to-bottom)
-  (define-key dired-mode-map (kbd "RET") 'dired-find-alternate-file)
-  (define-key dired-mode-map (kbd "C-x C-j") (lambda () (interactive) (find-alternate-file "..")))
-  )
+    (dired-next-line -1)))
 
 (use-package avy
   :ensure t
@@ -767,8 +440,7 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   ;; default was C-c p
   :bind-keymap (("C-x p" . projectile-command-map))
 
-  :bind (
-	 ("M-s f" . projectile-find-file)
+  :bind (("M-s f" . projectile-find-file)
 	 ("M-s d" . projectile-find-dir)
 	 ("M-s 4 f" . projectile-find-file-other-window)
 	 ("C-x o" . projectile-find-other-file)
@@ -888,8 +560,7 @@ This is the same as using \\[set-mark-command] with the prefix argument."
   (autoload 'projectile-project-root "projectile")
   (setq consult-project-function (lambda (_) (projectile-project-root)))
 
-  (setq consult-find-args "fd -x .")
-  )
+  (setq consult-find-args "fd -x ."))
 
 (use-package which-key
   :ensure t
@@ -963,8 +634,7 @@ targets."
 (use-package embark-consult
   :ensure t
   :hook
-  (embark-collect-mode . consult-preview-at-point-mode)
-  )
+  (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package consult-dir
   :ensure t
@@ -977,8 +647,7 @@ targets."
   :ensure t
   :hook (prog-mode . fancy-dabbrev-mode)
   :config
-  (setq fancy-dabbrev-preview-delay 0.1)
-  )
+  (setq fancy-dabbrev-preview-delay 0.1))
 
 ;;(use-package eglot
 ;;  :hook
@@ -1013,10 +682,10 @@ targets."
   :init
   (setq treesit-extra-load-path '("~/.emacs.d/tree-sitter/"))
   (setq treesit-language-source-alist
-   '((c "https://github.com/tree-sitter/tree-sitter-c")
-     (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
-     (bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.23.3"))
-     ))
+        '((c "https://github.com/tree-sitter/tree-sitter-c")
+          (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+          (bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.23.3"))
+          ))
 
   (setq treesit-font-lock-level 4)
   ;;(setq treesit--indent-verbose t)
@@ -1142,47 +811,30 @@ targets."
     (interactive (visual-replace-read (visual-replace-make-args
                                        :query t
                                        :word (and current-prefix-arg (not (eq current-prefix-arg '-))))))
-    (visual-replace args ranges))
-  )
+    (visual-replace args ranges)))
+    
 
-;; This is useful for code blocks in org mode. Idk how to use tree-sitter in org mode for code blocks.
-(defun my-c-mode-common-hook ()
-  ;; my customizations for all of c-mode, c++-mode, objc-mode, java-mode
-  (c-set-offset 'substatement-open 0)
-  (c-set-offset 'statement-cont 0)
-  ;; other customizations can go here
-  
-  (c-set-offset 'inextern-lang 0)
-  
-  (setq c-tab-always-indent t)
-  (setq c-basic-offset 4)                  ;; Default is 2
-  (setq c-indent-level 4)                  ;; Default is 2
-  (c-set-offset 'case-label '+)       ;; for switch-case
-  (c-set-offset 'statement-case-intro 0)
-  (c-set-offset 'statement-case-open 0)
-  (c-set-offset 'brace-list-open 0)      ;; open brace of an enum or static array list
-  (c-set-offset 'brace-list-close 0)      ;; open brace of an enum or static array list
-  (c-set-offset 'brace-list-intro '+)      ;; first line in an enum or static array list
-  (c-set-offset 'brace-list-entry 0)      ;; subsequent lines in an enum or static array
-  
-  (setq tab-stop-list '(4 8 12 16 20 24 28 32 36 40 44 48 52 56 60))
-  (setq tab-width 4)
-  (setq indent-tabs-mode nil)  ; use spaces only if nil
-  (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
-  )
-
-(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
-
-(use-package expand-region
+(use-package expreg
   :ensure t
-  :bind ("C-," . er/expand-region))
+  :bind (("C-," . expreg-expand)
+         (:repeat-map expreg-repeat-map
+                      ("," . expreg-expand)
+                      ("." . expreg-contract))))
 
 (use-package vundo
   :ensure t
   :init
-  ;;(setq vundo-compact-display t)
-  (setq vundo-glyph-alist vundo-unicode-symbols)
-  )
+  (setq vundo-compact-display t)
+  (setq vundo-glyph-alist vundo-unicode-symbols))
+
+(use-package nano-modeline
+  :ensure t
+  :init
+  (setq nano-modeline-position #'nano-modeline-footer)
+  (setq-default mode-line-format nil)
+  :config
+  (add-hook 'prog-mode-hook #'nano-modeline-prog-mode)
+  (nano-modeline-text-mode t))
 
 ;; (use-package copilot
 ;;   :ensure t
@@ -1206,7 +858,7 @@ targets."
 ;;           (open-line 1)
 ;;           (next-line))
 ;;       (copilot-complete)))
-  
+
 ;;   (defun my/copilot-accept-completion-by-line ()
 ;;     (interactive)
 ;;     (progn
@@ -1258,45 +910,4 @@ targets."
 ;;  (add-hook 'c++-ts-mode-hook #'my-setup-c-ts-mode)
 ;;  )
 
-(put 'downcase-region 'disabled nil)
-(put 'upcase-region 'disabled nil)
 
-;; C-c C-\ c-backslash-region
-
-;; M-s h r highlight-regexp
-;; M-s h u unhighlight-regexp
-
-;; C-x C-l downcase-region
-;; C-x C-u upcase-region
-
-;; C-M-Space mark-sexp
-
-;; C-x n n Narrow down to between point and mark (narrow-to-region).
-;; C-x n w Widen to make the entire buffer accessible again (widen).
-;; C-x n p Narrow down to the current page (narrow-to-page).
-;; C-x n d Narrow down to the current defun
-
-;; https://www.reddit.com/r/emacs/comments/xvj3b/til_about_calc_and_quick_calc_modes/
-;; https://www.reddit.com/r/emacs/comments/jdrcer/calc_is_fun/
-;; C-x * e
-;; C-x * u calc-embedded-update-formula
-;; C-x * : calc-grab-sum-down
-
-;; C-M-u backward-up-list
-;; C-M-n forward-list
-
-;; C-M-l reposition-window
-
-;; C-x r w save window layout to register
-;; C-x r j open window layout in register
-
-;; M-s w isearch-forward-word
-
-;; C-x r N rectangle line numbers
-
-;; Dired:
-;; w copy relative file name
-;; M-0 w copy absolute file name
-;; * c change old mark to new mark
-;; M-<backspace> delete mark
-;; i insert subdir

@@ -62,7 +62,8 @@
      :gray1 "#080808" :gray2 "#191919" :gray3 "#2a2a2a" :gray4 "#444444"
      :gray5 "#555555" :gray6 "#7a7a7a" :gray7 "#aaaaaa" :gray8 "#cccccc"
      :gray9 "#dddddd" :gray10 "#f1f1f1" :modeline "#1c1c1c"
-     :white "#ffffff" :black "#000000" :fg "#cccccc":bg "#121212" :glow "#1bfd9c")
+     :white "#ffffff" :black "#000000" :fg "#cccccc":bg "#121212"
+     :glow "#1bfd9c" :glow2 "#7856ff" :glow3 "#f21bfd" ) ;; #9f1bfd 
 
     (void :bg "#000000" :bg-alt "#0a0a0a" :fg "#c0c0c0" :glow "#7affc1"
           :red "#ff5f5f" :orange "#ff875f" :yellow "#ffd75f" :green "#5fff87"
@@ -131,12 +132,17 @@
    `(isearch                    ((,class :foreground ,(monoglow-color :bg) :background ,(monoglow-color :glow))))
    `(lazy-highlight             ((,class :background ,(monoglow-color :gray4))))
 
+   `(marginalia-date    ((,class :foreground ,(monoglow-color :gray4) :slant italic :underline nil)))
+
    `(completions-annotations    ((,class :foreground ,(monoglow-color :gray4) :slant italic :underline nil)))
+   `(completions-common-part    ((,class :foreground ,(monoglow-color :glow) :weight bold)))
    `(link                       ((,class :foreground ,(monoglow-color :glow))))
    `(match                      ((,class :foreground ,(monoglow-color :glow))))
    `(success                    ((,class :foreground ,(monoglow-color :glow) :underline t)))
    
-   `(orderless-match-face-0     ((,class :foreground ,(monoglow-color :glow))))
+   `(orderless-match-face-0     ((,class :foreground ,(monoglow-color :glow)  :weight bold)))
+   `(orderless-match-face-1     ((,class :foreground ,(monoglow-color :glow2) :weight bold)))
+   `(orderless-match-face-2     ((,class :foreground ,(monoglow-color :glow3) :weight bold)))
 
    `(which-key-key-face         ((,class :foreground ,(monoglow-color :glow))))
    `(help-key-binding           ((,class :foreground ,(monoglow-color :glow))))
@@ -149,8 +155,15 @@
    `(diff-file-header ((,class :foreground ,(monoglow-color :gray6) :background ,(monoglow-color :bg))))
 
    `(vundo-highlight ((,class :foreground ,(monoglow-color :glow))))
+   `(vundo-saved ((,class :foreground ,(monoglow-color :glow2))))
+   `(vundo-last-saved ((,class :foreground ,(monoglow-color :glow))))
    
    `(embark-target ((,class :background ,(monoglow-color :gray3))))
+
+   `(mmv-face-internal ((,class :background ,(monoglow-color :glow2))))
+
+   `(eshell-prompt ((,class :foreground ,(monoglow-color :glow) :weight bold)))
+
    ))
 
 ;;(defun my/unhighlight-dot ()
