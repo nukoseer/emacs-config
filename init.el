@@ -60,7 +60,7 @@
   (setq linum-format " %5i ")
 
   ;; switch-to-buffer-other-window will switch vertically
-  (setq split-width-threshold nil)
+  ;;(setq split-width-threshold nil)
   (setq split-height-threshold 200)
 
   (setq window-divider-default-places 'right-only)
@@ -236,11 +236,6 @@
 ;;   ;; Apply immediately after loading theme
 ;;   (my-theme-customizations))
 
-(use-package gcmh
-  :ensure t
-  :init
-  (gcmh-mode))
-
 (use-package repeat
   :config
   (repeat-mode t)
@@ -311,7 +306,7 @@
   :defer 3
   :after compile
   :config
-  (setq tramp-default-method "plink")
+  (setq tramp-default-method "scp") ;; plink
   (setq remote-file-name-inhibit-cache nil)
   (setq vc-ignore-dir-regexp
   	(format "%s\\|%s"

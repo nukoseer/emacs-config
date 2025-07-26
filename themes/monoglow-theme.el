@@ -62,7 +62,7 @@
      :gray1 "#080808" :gray2 "#191919" :gray3 "#2a2a2a" :gray4 "#444444"
      :gray5 "#555555" :gray6 "#7a7a7a" :gray7 "#aaaaaa" :gray8 "#cccccc"
      :gray9 "#dddddd" :gray10 "#f1f1f1" :modeline "#1c1c1c"
-     :white "#ffffff" :black "#000000" :fg "#cccccc":bg "#121212"
+     :white "#ffffff" :black "#000000" :fg "#cccccc" :bg "#121212"
      :glow "#1bfd9c" :glow2 "#7856ff" :glow3 "#f21bfd" ) ;; #9f1bfd 
 
     (void :bg "#000000" :bg-alt "#0a0a0a" :fg "#c0c0c0" :glow "#7affc1"

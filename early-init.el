@@ -23,6 +23,7 @@
       gc-cons-percentage 0.6)
 
 (setq read-process-output-max (* 1024 1024) ;; 1mb
+      source-directory nil
       vc-handled-backends nil
       widget-image-enable nil
       frame-inhibit-implied-resize t)
