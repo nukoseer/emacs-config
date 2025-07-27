@@ -461,6 +461,8 @@
          ;; C-x bindings in `ctl-x-map'
          ("C-'" . consult-buffer)
          ("C-;" . consult-buffer-other-window)
+         ("C-M-'" . consult-project-buffer)
+         ("C-M-;" . consult-project-buffer-other-window)
          ;; Other custom bindings
          ("M-y" . consult-yank-pop)
          ;; M-g bindings in `goto-map'
@@ -502,6 +504,12 @@
   ;; Configure other variables and modes in the :config section,
   ;; after lazily loading the package.
   :config
+
+  (defun consult-project-buffer-other-window ()
+    (interactive)
+    (let ((consult--buffer-display #'switch-to-buffer-other-window))
+      (consult--with-project
+        (consult-buffer consult-project-buffer-sources))))
 
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
@@ -920,4 +928,120 @@ targets."
 ;;  (add-hook 'c++-ts-mode-hook #'my-setup-c-ts-mode)
 ;;  )
 
+(use-package tab-bar
+  :ensure nil
+  :defer t
+  :custom
+  (tab-bar-close-button-show nil)
+  (tab-bar-new-button-show nil)
+  (tab-bar-tab-hints t)
+  (tab-bar-auto-width nil)
+  (tab-bar-separator " ")
+  (tab-bar-format '(tab-bar-format-tabs-groups
+		    ;;tab-bar-format-tabs tab-bar-separator
+		    tab-bar-format-add-tab))
+  :init
+  ;;; --- OPTIONAL INTERNAL FN OVERRIDES TO DECORATE NAMES
+  (defun tab-bar-tab-name-format-hints (name _tab i)
+    (if tab-bar-tab-hints (concat (format "»%d«" i) "") name))
+
+  (defun tab-bar-tab-group-format-default (tab _i &optional current-p)
+    (propertize
+     (concat (funcall tab-bar-tab-group-function tab))
+     'face (if current-p 'tab-bar-tab-group-current 'tab-bar-tab-group-inactive)))
+
+    (setq first-tab-project nil)
+  
+    (defun my/projectile-switch-project-in-new-tab ()
+    "Prompt for a project, create a new tab, then visit the project."
+    (interactive)
+    (let ((project (projectile-completing-read
+                    "Switch to project: "
+                    (projectile-relevant-known-projects))))
+
+      (when-let* ((name (file-name-nondirectory (directory-file-name project))))
+        (if (not first-tab-project)
+            (setq first-tab-project t)
+            (tab-bar-new-tab))
+        (projectile-switch-project-by-name project)
+        (tab-group (format "[%s]" name)))))
+
+  ;;; --- UTILITIES FUNCTIONS
+  (defun emacs-solo/tab-group-from-project ()
+    "Call `tab-group` with the current project name as the group."
+    (interactive)
+    (when-let* ((proj (project-current))
+		(name (file-name-nondirectory
+		       (directory-file-name (project-root proj)))))
+      (tab-group (format "[%s]" name))))
+
+  (defun emacs-solo/tab-switch-to-group ()
+    "Prompt for a tab group and switch to its first tab.
+Uses position instead of index field."
+    (interactive)
+    (let* ((tabs (funcall tab-bar-tabs-function)))
+      (let* ((groups (delete-dups (mapcar (lambda (tab)
+		                            (funcall tab-bar-tab-group-function tab))
+                                          tabs)))
+	     (group (completing-read "Switch to group: " groups nil t)))
+	(let ((i 1) (found nil))
+	  (dolist (tab tabs)
+	    (let ((tab-group (funcall tab-bar-tab-group-function tab)))
+	      (when (and (not found)
+			 (string= tab-group group))
+		(setq found t)
+		(tab-bar-select-tab i)))
+	    (setq i (1+ i)))))))
+
+  ;;; --- EXTRA KEYBINDINGS
+  (global-set-key (kbd "C-x t P") #'emacs-solo/tab-group-from-project)
+  (global-set-key (kbd "C-x t g") #'emacs-solo/tab-switch-to-group)
+
+  ;;; --- TURNS ON BY DEFAULT
+  (tab-bar-mode 1))
+
+(defun my/tab-next-in-group (&optional arg)
+  "Move to the next tab that shares the current tab's `group' parameter.
+With numeric prefix ARG, move ARG tabs forward (negative = backward)."
+  (interactive "p")
+  (let* ((tabs (tab-bar-tabs))
+         (cur  (tab-bar--current-tab-index))
+         (grp  (alist-get 'group (tab-bar--current-tab)))
+         (n    (or arg 1))
+         (len  (length tabs)))
+    (cl-loop
+     for i from 1 to len
+     for idx = (mod (+ cur (* i n (cl-signum n))) len)
+     if (equal grp (alist-get 'group (nth idx tabs)))
+     do (tab-bar-select-tab (1+ idx)) (cl-return))))
+
+;; Bind it any way you like:
+(define-key tab-prefix-map (kbd "n") #'my/tab-next-in-group)
+(define-key tab-prefix-map (kbd "p")  (lambda () (interactive) (my/tab-next-in-group -1)))
+
+(defun my/tab--select-first-of-group (group)
+  "Select the first tab whose `group' parameter equals GROUP."
+  (let* ((tabs (tab-bar-tabs))
+         ;; find index of first tab in that group
+         (idx  (cl-position group
+                            (mapcar (lambda (tab) (alist-get 'group tab))
+                                    tabs)
+                            :test #'equal)))
+    (when idx
+      ;; tab-bar-select-tab uses 1-based indices
+      (tab-bar-select-tab (1+ idx)))))
+
+(defun my/tab-switch-group (delta)
+  "Move DELTA groups forward (negative = backward) **without** cycling
+through tabs inside each group."
+  (let* ((tabs   (tab-bar-tabs))
+         ;; ordered list of distinct group names
+         (groups (delete-dups
+                  (mapcar (lambda (tab) (alist-get 'group tab)) tabs)))
+         (cur    (alist-get 'group (tab-bar--current-tab)))
+         (len    (length groups)))
+    (when (> len 1)
+      (let* ((pos  (or (cl-position cur groups :test #'equal) 0))
+             (next (nth (mod (+ pos delta) len) groups)))
+        (my/tab--select-first-of-group next)))))
 

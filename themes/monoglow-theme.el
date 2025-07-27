@@ -170,7 +170,7 @@
    `(tab-bar ((,class :background ,(monoglow-color :bg))))
    `(tab-bar-tab ((,class :foreground ,(monoglow-color :glow) :underline t)))
    `(tab-bar-tab-inactive ((,class ( :foreground ,(monoglow-color :glow)))))
-   `(tab-bar-tab-group-current ((,class :foreground ,(monoglow-color :glow) :weight bold :underline t)))
+   `(tab-bar-tab-group-current ((,class :foreground ,(monoglow-color :glow) :weight bold)))
    `(tab-bar-tab-group-inactive ((,class (:foreground ,(monoglow-color :gray5)))))
    
    ))
