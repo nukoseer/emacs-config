@@ -58,11 +58,12 @@
   :group 'monoglow)
 
 (defconst monoglow-palette
-  '((z
+  `((z
      :gray1 "#080808" :gray2 "#191919" :gray3 "#2a2a2a" :gray4 "#444444"
      :gray5 "#555555" :gray6 "#7a7a7a" :gray7 "#aaaaaa" :gray8 "#cccccc"
      :gray9 "#dddddd" :gray10 "#f1f1f1" :modeline "#1c1c1c"
-     :white "#ffffff" :black "#000000" :fg "#cccccc" :bg "#121212"
+     :white "#ffffff" :black ,(monoglow-blend "#121212" 0.8 "#000000")
+     :fg "#cccccc" :bg "#121212"
      :glow "#1bfd9c" :glow2 "#7856ff" :glow3 "#f21bfd" ) ;; #9f1bfd 
 
     (void :bg "#000000" :bg-alt "#0a0a0a" :fg "#c0c0c0" :glow "#7affc1"
@@ -125,12 +126,14 @@
    `(window-divider-first-pixel ((,class :foreground ,(monoglow-color :modeline))))
    `(window-divider-last-pixel  ((,class :foreground ,(monoglow-color :modeline))))
 
+   `(line-number                ((,class :foreground ,(monoglow-color :gray4))))
+   
    `(hl-line                    ((,class :background ,(monoglow-color :modeline))))
    `(highlight                  ((,class :background ,(monoglow-color :modeline))))
    `(show-paren-match           ((,class :foreground ,(monoglow-color :glow))))
 
    `(isearch                    ((,class :foreground ,(monoglow-color :bg) :background ,(monoglow-color :glow))))
-   `(lazy-highlight             ((,class :background ,(monoglow-color :gray4))))
+   `(lazy-highlight             ((,class :background ,(monoglow-color :gray4) :foreground ,(monoglow-color :fg))))
 
    `(marginalia-date    ((,class :foreground ,(monoglow-color :gray4) :slant italic :underline nil)))
 
@@ -164,6 +167,12 @@
 
    `(eshell-prompt ((,class :foreground ,(monoglow-color :glow) :weight bold)))
 
+   `(tab-bar ((,class :background ,(monoglow-color :bg))))
+   `(tab-bar-tab ((,class :foreground ,(monoglow-color :glow) :underline t)))
+   `(tab-bar-tab-inactive ((,class ( :foreground ,(monoglow-color :glow)))))
+   `(tab-bar-tab-group-current ((,class :foreground ,(monoglow-color :glow) :weight bold :underline t)))
+   `(tab-bar-tab-group-inactive ((,class (:foreground ,(monoglow-color :gray5)))))
+   
    ))
 
 ;;(defun my/unhighlight-dot ()

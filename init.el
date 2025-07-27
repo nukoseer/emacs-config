@@ -33,9 +33,9 @@
  '(package-selected-packages
    '(avy buffer-move consult consult-dir dumb-jump embark embark-consult
          expreg fancy-dabbrev highlight-numbers marginalia
-         modus-themes monoglow-theme multiple-cursors nano-modeline
-         orderless projectile rainbow-delimiters rg smartscan
-         use-package vertico visual-replace vundo which-key)))
+         modus-themes monoglow-theme move-text multiple-cursors
+         nano-modeline orderless projectile rainbow-delimiters rg
+         smartscan use-package vertico visual-replace vundo which-key)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -57,7 +57,8 @@
   (setq custom--inhibit-theme-enable nil)
 
   (setq grep-use-null-device nil)
-  (setq linum-format " %5i ")
+  ;;(setq display-line-numbers-type 'relative)
+  ;;(setq linum-format " %5i ")
 
   ;; switch-to-buffer-other-window will switch vertically
   ;;(setq split-width-threshold nil)
@@ -81,8 +82,6 @@
   (setq duplicate-line-final-position 1)
 
   :bind (("C-z"       . undo)
-	 ("M-<up>"    . move-line-up)
-	 ("M-<down>"  . move-line-down)
 	 ("C-SPC"     . push-mark-no-activate)
 	 ;;("M-\""       . jump-to-mark)
 	 ("M-`"       . jump-to-mark)
@@ -170,8 +169,7 @@
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
 	'(read-only t cursor-intangible t face minibuffer-prompt))
-  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
-  )
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode))
 
 ;; (use-package modus-themes
 ;;   :ensure t
@@ -253,8 +251,8 @@
   (recentf-mode t))
 
 (use-package paren
-  :init
-  (setq show-paren-delay 0)
+  :custom
+  (show-paren-delay 0)
   :config
   (show-paren-mode))
 
@@ -808,7 +806,6 @@ targets."
                                        :word (and current-prefix-arg (not (eq current-prefix-arg '-))))))
     (visual-replace args ranges)))
     
-
 (use-package expreg
   :ensure t
   :bind (("C-," . expreg-expand)
@@ -830,6 +827,24 @@ targets."
   :config
   (add-hook 'prog-mode-hook #'nano-modeline-prog-mode)
   (nano-modeline-text-mode t))
+
+(use-package move-text
+  :ensure t
+  :bind (("C-c p". move-text-up)
+         ("C-c n". move-text-down)
+         (:repeat-map move-text-repeat-map
+                      ("p". move-text-up)
+                      ("n". move-text-down)))
+  :config
+  (defun indent-region-advice (&rest ignored)
+    (let ((deactivate deactivate-mark))
+      (if (region-active-p)
+          (indent-region (region-beginning) (region-end))
+        (indent-region (line-beginning-position) (line-end-position)))
+      (setq deactivate-mark deactivate)))
+
+  (advice-add 'move-text-up :after 'indent-region-advice)
+  (advice-add 'move-text-down :after 'indent-region-advice))
 
 ;; (use-package copilot
 ;;   :ensure t
