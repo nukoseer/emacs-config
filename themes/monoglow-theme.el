@@ -19,7 +19,7 @@
 
 ;;;; Helper functions ---------------------------------------------------------
 
-(defun monoglow-hex->rgb (hex)
+(defun monoglow-hex-rgb (hex)
   "Return (R G B) list of integers 0–255 for a HEX string like \"#rrggbb\"."
   (let* ((clean (replace-regexp-in-string "#" "" hex)))
     (mapcar (lambda (i)
@@ -36,8 +36,8 @@
   (let* ((alpha (if (stringp alpha)
                     (/ (string-to-number alpha 16) 255.0)
                   alpha))
-         (fg (monoglow-hex->rgb foreground))
-         (bg (monoglow-hex->rgb background))
+         (fg (monoglow-hex-rgb foreground))
+         (bg (monoglow-hex-rgb background))
          (blend (cl-mapcar (lambda (f b)
                              (monoglow-round (+ (* alpha f) (* (- 1 alpha) b))))
                            fg bg)))
@@ -64,7 +64,9 @@
      :gray9 "#dddddd" :gray10 "#f1f1f1" :modeline "#1c1c1c"
      :white "#ffffff" :black ,(monoglow-blend "#121212" 0.8 "#000000")
      :fg "#cccccc" :bg "#121212"
-     :glow "#1bfd9c" :glow2 "#7856ff" :glow3 "#f21bfd" ) ;; #9f1bfd 
+     :glow "#1bfd9c" :glow-brighten "#a6ffc9" :glow2 "#7856ff" :glow3 "#f21bfd"
+     :lack "#708090" :luster "#deeeed" :blue1 "#b2d8d8" :blue2 "#66b2b2" :blue2-brighten "#49c4c4"
+     ) ;; #9f1bfd 
 
     (void :bg "#000000" :bg-alt "#0a0a0a" :fg "#c0c0c0" :glow "#7affc1"
           :red "#ff5f5f" :orange "#ff875f" :yellow "#ffd75f" :green "#5fff87"
@@ -172,7 +174,22 @@
    `(tab-bar-tab-inactive ((,class ( :foreground ,(monoglow-color :glow)))))
    `(tab-bar-tab-group-current ((,class :foreground ,(monoglow-color :glow) :weight bold)))
    `(tab-bar-tab-group-inactive ((,class (:foreground ,(monoglow-color :gray5)))))
-   
+   `(term-color-green ((,class :foreground ,(monoglow-color :glow))))
+   `(term-color-bright-green ((,class :foreground ,(monoglow-color :glow-brighten))))
+   `(term-color-black ((,class :foreground ,(monoglow-color :gray3))))
+   `(term-color-bright-black ((,class :foreground ,(monoglow-blend (monoglow-color :gray3) 0.80 (monoglow-color :fg)))))
+   `(term-color-red  ((,class :foreground ,(monoglow-color :luster))))
+   `(term-color-bright-red  ((,class :foreground ,(monoglow-color :lack))))
+   `(term-color-yellow  ((,class :foreground ,(monoglow-blend (monoglow-color :gray9) 0.80 (monoglow-color :bg)))))
+   `(term-color-bright-yellow  ((,class :foreground ,(monoglow-color :gray9))))
+   `(term-color-blue ((,class :foreground ,(monoglow-color :gray6))))
+   `(term-color-bright-blue ((,class :foreground ,(monoglow-color :gray7))))
+   `(term-color-magenta  ((,class :foreground ,(monoglow-color :blue2))))
+   `(term-color-bright-magenta  ((,class :foreground ,(monoglow-color :blue2-brighten))))
+   `(term-color-cyan  ((,class :foreground ,(monoglow-color :gray8))))
+   `(term-color-bright-cyan  ((,class :foreground ,(monoglow-blend (monoglow-color :gray10) 0.80 (monoglow-color :fg)))))
+   `(term-color-white  ((,class :foreground ,(monoglow-color :gray10))))
+   `(term-color-bright-white  ((,class :foreground ,(monoglow-color :white))))
    ))
 
 ;;(defun my/unhighlight-dot ()

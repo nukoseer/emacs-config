@@ -102,7 +102,6 @@
 	 ("<f1>"      . build)
          ("<f2>"      . run)
          ("<f3>"      . generate)
-	 ("C-x w"     . window-toggle-side-windows)
 	 ("<escape>"  . window-toggle-side-windows)
 	 ;;("C-,"       . mark-sexp)
 	 ("C-x j"     . previous-buffer)
@@ -125,7 +124,7 @@
   (if (running-in-wsl-p)
       (progn
 	(message "Running in WSL!")
-	(setq default-directory "/mnt/c/")
+	(setq default-directory "~/nu/")
 	(add-hook 'comint-output-filter-functions 'my-comint-path-rewrite))
     (setq default-directory "C:/"))
 
@@ -174,6 +173,10 @@
   (setq minibuffer-prompt-properties
 	'(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode))
+
+(use-package window
+  :bind (:map window-prefix-map
+              ("w" . window-toggle-side-windows)))
 
 ;; (use-package modus-themes
 ;;   :ensure t
@@ -1020,7 +1023,70 @@ Uses position instead of index field."
   (tab-bar-mode t))
 
 (use-package vterm
-  :ensure t)
+  :ensure t
+  :bind ("C-c v" . my/toggle-vterm)
+  :config
+  (add-to-list 'vterm-eval-cmds '("update-pwd" (lambda (path) (setq default-directory path))))
+
+  (add-to-list 'display-buffer-alist
+               `(,(rx (| "*vterm*"))
+        	 (display-buffer-in-side-window)
+        	 (side . bottom)
+        	 (slot . 0)
+        	 (window-parameters . ((no-delete-other-windows . t)))
+        	 (window-height . 0.25)))
+  
+  (defvar my/vterm-prev-window nil
+    "The window that was selected right before a vterm was popped.
+Used by `my/toggle-vterm' to restore focus when the vterm is hidden.")
+  
+  (defun my/toggle-vterm (&optional arg)
+    "Toggle a side-window vterm.
+     Behaviour:
+       - If a visible vterm window exists → hide it and return to the
+          previously active window (stored in `my/vterm-prev-window').
+       - Else → show (or create) a vterm in the side window and select it.
+     With prefix ARG (\\[universal-argument]) always create a *new* vterm buffer."
+    (interactive "P")
+    ;; 1.  Find existing vterm buffers & windows
+    (let* ((vterm-bufs (seq-filter (lambda (b)
+                                     (string-match-p "\\`\\*vterm"
+                                                     (buffer-name b)))
+                                   (buffer-list)))
+           (vterm-win  (seq-some (lambda (buf) (get-buffer-window buf 'visible))
+                                 vterm-bufs)))
+      (cond
+       ;; (A) Vterm is visible and no prefix → hide it, restore prev
+       ((and vterm-win (not arg))
+        (delete-window vterm-win)
+        (when (window-live-p my/vterm-prev-window)
+          (select-window my/vterm-prev-window)))
+
+       (t
+        ;; remember where we came from *before* we display vterm
+        (setq my/vterm-prev-window (selected-window))
+        (let* ((buf (cond
+                     ;; new vterm requested
+                     (arg (let ((default-directory
+                                 (or (when (fboundp 'projectile-project-root)
+                                       (ignore-errors
+                                         (projectile-project-root)))
+                                     default-directory)))
+                            (vterm "*vterm*<new>")
+                            (current-buffer)))
+                     ;; reuse first existing buffer if any
+                     (vterm-bufs (car vterm-bufs))
+                     ;; else create one
+                     (t (let ((default-directory
+                               (or (when (fboundp 'projectile-project-root)
+                                     (ignore-errors
+                                       (projectile-project-root)))
+                                   default-directory)))
+                          (vterm)
+                          (current-buffer)))))
+               (win (or (get-buffer-window buf 'visible)
+                        (display-buffer buf))))
+          (select-window win)))))))
 
 ;; This is valid after emacs-31. We use this in WSL side.
 ;;(use-package c-ts-mode
