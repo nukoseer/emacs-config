@@ -201,6 +201,18 @@ This is the same as using \\[set-mark-command] with the prefix argument."
       ))
   (goto-char beginning-point))
 
+(defun file-name-parent-base (path)
+    "Return the last directory component and file component of PATH."
+    (let* ((tru   (directory-file-name (expand-file-name path)))
+           (base  (file-name-nondirectory tru))
+           (dir   (file-name-directory tru)))
+      (if (or (null dir) (equal dir "/"))
+          base
+        (let ((parent (file-name-nondirectory
+                       (directory-file-name dir))))
+          (if (string-empty-p parent) base
+            (concat parent "/" base))))))
+
 (defface mode-line-remote
   '((t (:inherit mode-line-buffer-id :box (:line-width 2 :color "orange"))))
   "Face for mode line buffer identification in remote buffers."

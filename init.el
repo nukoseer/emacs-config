@@ -31,11 +31,11 @@
      default))
  '(org-safe-remote-resources '("\\`https://fniessen\\.github\\.io\\(?:/\\|\\'\\)"))
  '(package-selected-packages
-   '(avy buffer-move consult consult-dir dumb-jump embark embark-consult
-         expreg fancy-dabbrev highlight-numbers marginalia
-         modus-themes monoglow-theme move-text multiple-cursors
+   '(avy buffer-move consult-dir copilot dumb-jump embark-consult
+         expand-region expreg fancy-dabbrev gcmh highlight-numbers
+         marginalia modus-themes move-text multiple-cursors
          nano-modeline orderless projectile rainbow-delimiters rg
-         smartscan use-package vertico visual-replace vundo which-key)))
+         smartscan vertico visual-replace vterm vundo)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -114,6 +114,10 @@
                ("t" . toggle-window-split)))
 
   :config
+
+  ;; Use C-\ as help key instead of C-h.
+  (setq help-char ?\C-\\)
+  (setq help-event-list (list help-char))
 
   (my-load-all-in-directory '"~/.emacs.d/others/")
   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
@@ -236,15 +240,7 @@
 
 (use-package repeat
   :config
-  (repeat-mode t)
-
-  (defun repeatize (keymap)
-    "Add `repeat-mode' support to a KEYMAP."
-    (map-keymap
-     (lambda (_key cmd)
-       (when (symbolp cmd)
-         (put cmd 'repeat-map keymap)))
-     (symbol-value keymap))))
+  (repeat-mode t))
 
 (use-package recentf
   :init
@@ -410,8 +406,33 @@
   ;; This is needed when remote projects exist.
   ;;:after tramp
   :defer t
+  :bind-keymap (("C-x p" . projectile-command-map))   ;; default was C-c p
+  :bind (("M-s f" . projectile-find-file)
+	 ("M-s d" . projectile-find-dir)
+	 ("M-s 4 f" . projectile-find-file-other-window)
+	 ("C-x o" . projectile-find-other-file)
+	 ("C-x 4 o" . projectile-find-other-file-other-window)
+         :map projectile-command-map
+         ("t" . my/projectile-switch-project-in-new-tab))
+
   :config
-  (projectile-mode t)
+
+  (setq first-tab-project nil)
+
+  (defun my/projectile-switch-project-in-new-tab ()
+    "Prompt for a project, create a new tab, then visit the project."
+    (interactive)
+    (let ((project (projectile-completing-read
+                    "Switch to project: "
+                    (projectile-relevant-known-projects))))
+
+      (when-let* ((name (file-name-parent-base (directory-file-name project))))
+        (if (not first-tab-project)
+            (setq first-tab-project t)
+          (tab-bar-new-tab))
+        (projectile-switch-project-by-name project)
+        (tab-group (format "[%s]" name)))))
+  
   (setq projectile-generic-command "fd . -0 --type f --color=never --full-path") ;; --strip-cwd-prefix
   (setq projectile-git-fd-args "-H -0 -E .git -tf --color=never") ;; --strip-cwd-prefix
 
@@ -430,14 +451,7 @@
   ;;(lambda (&optional dir)
   ;;(not (file-remote-p (or dir default-directory)))))
 
-  ;; default was C-c p
-  :bind-keymap (("C-x p" . projectile-command-map))
-
-  :bind (("M-s f" . projectile-find-file)
-	 ("M-s d" . projectile-find-dir)
-	 ("M-s 4 f" . projectile-find-file-other-window)
-	 ("C-x o" . projectile-find-other-file)
-	 ("C-x 4 o" . projectile-find-other-file-other-window)))
+  (projectile-mode t))
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
@@ -650,34 +664,36 @@ targets."
   :config
   (setq fancy-dabbrev-preview-delay 0.1))
 
-;;(use-package eglot
-;;  :hook
-;;  (c-ts-mode . eglot-ensure)
-;;  (c++-ts-mode . eglot-ensure)
-;;  (csharp-mode . eglot-ensure)
-;;  :config
-;;  (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
-;;  (add-to-list 'eglot-server-programs '(csharp-mode . ("omnisharp" "-lsp")))
-;;  (add-to-list 'eglot-stay-out-of 'eldoc)
-;;  (add-to-list 'eglot-stay-out-of 'flymake)
-;;  (setf (plist-get eglot-events-buffer-config :size) 0)
-;;  (setq track-changes-record-errors nil) ;; narrow-indirect causes some problems.
-;;  :custom
-;;  (eglot-ignored-server-capabilities
-;;   '(
-;;     :hoverProvider
-;;     :documentHighlightProvider
-;;     :documentFormattingProvider
-;;     :documentRangeFormattingProvider
-;;     :documentOnTypeFormattingProvider
-;;     :colorProvider
-;;     :foldingRangeProvider
-;;     :inlayHintProvider
-;;     )))
-;;
-;;(use-package eglot-booster
-;;  :after eglot
-;;  :config (eglot-booster-mode))
+(use-package eglot
+ :hook
+ (c-ts-mode . eglot-ensure)
+ (c++-ts-mode . eglot-ensure)
+ (csharp-mode . eglot-ensure)
+ :config
+ (add-to-list 'eglot-server-programs '((c++-mode c-mode c-ts-mode c++-ts-mode) "clangd-16"))
+ (add-to-list 'eglot-server-programs '(csharp-mode . ("omnisharp" "-lsp")))
+ (add-to-list 'eglot-stay-out-of 'eldoc)
+ (add-to-list 'eglot-stay-out-of 'flymake)
+ (setf (plist-get eglot-events-buffer-config :size) 0)
+ (setq track-changes-record-errors nil) ;; narrow-indirect causes some problems.
+ :custom
+ (eglot-ignored-server-capabilities
+  '(
+    :hoverProvider
+    :documentHighlightProvider
+    :documentFormattingProvider
+    :documentRangeFormattingProvider
+    :documentOnTypeFormattingProvider
+    :colorProvider
+    :foldingRangeProvider
+    :inlayHintProvider
+    )))
+
+(use-package eglot-booster
+  :after eglot
+  :custom
+  (eglot-booster-io-only t)
+  :config (eglot-booster-mode))
 
 (use-package treesit
   :init
@@ -854,82 +870,47 @@ targets."
   (advice-add 'move-text-up :after 'indent-region-advice)
   (advice-add 'move-text-down :after 'indent-region-advice))
 
-;; (use-package copilot
-;;   :ensure t
-;;   :hook (prog-mode-hook . copilot-mode)
-;;   :bind (("C-c m" . my/copilot-complete-or-accept)
-;;          :map copilot-mode-map
-;;          ("C-c n" . copilot-next-completion)
-;;          ("C-c p" . copilot-previous-completion)
-;;          ("C-c l" . my/copilot-accept-completion-by-line))
-;;   :init
-;;   (setq copilot-max-char -1)
-;;   (setq copilot-indent-offset-warning-disable t)
-;;   :config
-;;   (defun my/copilot-complete-or-accept ()
-;;     "Command that either triggers a completion or accepts one if one
-;; is available. Useful if you tend to hammer your keys like I do."
-;;     (interactive)
-;;     (if (copilot--overlay-visible)
-;;         (progn
-;;           (copilot-accept-completion)
-;;           (open-line 1)
-;;           (next-line))
-;;       (copilot-complete)))
+(use-package copilot
+  :ensure t
+  :hook (prog-mode-hook . copilot-mode)
+  :bind (("C-c m" . my/copilot-complete-or-accept)
+         :map copilot-mode-map
+         ("C-c n" . copilot-next-completion)
+         ("C-c p" . copilot-previous-completion)
+         ("C-c l" . my/copilot-accept-completion-by-line)
+         :repeat-map copilot-repeat-map
+         ("n" . copilot-next-completion)
+         ("p" . copilot-previous-completion)
+         ("l" . my/copilot-accept-completion-by-line)
+         ("m" . my/copilot-complete-or-accept))
+  :init
+  (setq copilot-max-char -1)
+  (setq copilot-indent-offset-warning-disable t)
+  :config
 
-;;   (defun my/copilot-accept-completion-by-line ()
-;;     (interactive)
-;;     (progn
-;;       (copilot-accept-completion-by-line)
-;;       (if (not (string-match-p "\\`\\s-*$" (thing-at-point 'line)))
-;;           (progn
-;;             (copilot-clear-overlay)
-;;             (open-line 1)
-;;             (forward-line)
-;;             (copilot-complete)
-;;             ))))
+  (defun my/copilot-complete-or-accept ()
+    "Command that either triggers a completion or accepts one if one
+is available. Useful if you tend to hammer your keys like I do."
+    (interactive)
+    (if (copilot--overlay-visible)
+        (progn
+          (copilot-accept-completion)
+          (open-line 1)
+          (next-line))
+      (copilot-complete)))
 
-;;   (defvar-keymap copilot-repeat-map
-;;     :repeat t
-;;     "n" #'copilot-next-completion
-;;     "p" #'copilot-previous-completion
-;;     "l" #'my/copilot-accept-completion-by-line
-;;     "m" #'my/copilot-complete-or-accept)
-
-;;   (repeatize 'copilot-repeat-map)
-;;   )
-
-;; This is valid after emacs-31. We use this in WSL side.
-;;(use-package c-ts-mode
-;;  :init
-;;  (setq c-ts-mode-indent-offset 4)
-;;  :config
-;;  ;;(setq c-ts-mode-indent-style 'bsd)
-;;
-;;  (defun my-custom-c-ts-indent-rules ()
-;;  "Combine BSD rules with custom rules for `c-ts-mode`."
-;;  (let ((bsd-rules (c-ts-mode--simple-indent-rules 'c 'bsd)))
-;;    (append bsd-rules
-;;            `(
-;;	      ;; Add new rules here.
-;;  	      ;;((match "case_statement" "compound_statement") parent-bol c-ts-mode-indent-offset)
-;;  	      ))))
-;;
-;;  (defun my-setup-c-ts-mode ()
-;;    "Setup custom indentation for `c-ts-mode`."
-;;    (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
-;;    (setq-local treesit-simple-indent-rules (my-custom-c-ts-indent-rules))
-;;    (setq-local treesit-font-lock-settings
-;;	      (append treesit-font-lock-settings my/ts-font-lock-settings))
-;;    )
-;;
-;;  (add-hook 'c-ts-mode-hook #'my-setup-c-ts-mode)
-;;  ;; Do we need to add c++ separately?
-;;  (add-hook 'c++-ts-mode-hook #'my-setup-c-ts-mode)
-;;  )
+  (defun my/copilot-accept-completion-by-line ()
+    (interactive)
+    (progn
+      (copilot-accept-completion-by-line)
+      (if (not (string-match-p "\\`\\s-*$" (thing-at-point 'line)))
+          (progn
+            (copilot-clear-overlay)
+            (open-line 1)
+            (forward-line)
+            (copilot-complete))))))
 
 (use-package tab-bar
-  :ensure nil
   :defer t
   :after projectile
   :bind (:map tab-prefix-map
@@ -937,48 +918,32 @@ targets."
               ("P" . my/tab-prev-group)
               ("n" . my/tab-next-in-group)
               ("p" . my/tab-prev-in-group)
+              ("P" . my/tab-group-from-project)
+              ("g" . my/tab-switch-to-group)
               :repeat-map tab-bar-repeat-map
               ("N" . my/tab-next-group)
               ("P" . my/tab-prev-group)
               ("n" . my/tab-next-in-group)
-              ("p" . my/tab-prev-in-group)
-              :map projectile-command-map
-              ("t" . my/projectile-switch-project-in-new-tab))
+              ("p" . my/tab-prev-in-group))
   :custom
   (tab-bar-define-keys nil)
   (tab-bar-close-button-show nil)
   (tab-bar-new-button-show nil)
   (tab-bar-tab-hints t)
   (tab-bar-auto-width nil)
-  ;;(tab-bar-separator " ")
+  ;;  (tab-bar-separator " ")
   (tab-bar-format '(tab-bar-format-tabs-groups
-		    ;;tab-bar-format-tabs tab-bar-separator
-		    tab-bar-format-add-tab))
+       	            ;;tab-bar-format-tabs tab-bar-separator
+       	            tab-bar-format-add-tab))
   :init
-  ;;; --- OPTIONAL INTERNAL FN OVERRIDES TO DECORATE NAMES
+
   (defun tab-bar-tab-name-format-hints (name _tab i)
     (if tab-bar-tab-hints (concat (format "»%d«" i) "") name))
-
+  
   (defun tab-bar-tab-group-format-default (tab _i &optional current-p)
     (propertize
      (concat (funcall tab-bar-tab-group-function tab))
      'face (if current-p 'tab-bar-tab-group-current 'tab-bar-tab-group-inactive)))
-
-  (setq first-tab-project nil)
-  
-  (defun my/projectile-switch-project-in-new-tab ()
-    "Prompt for a project, create a new tab, then visit the project."
-    (interactive)
-    (let ((project (projectile-completing-read
-                    "Switch to project: "
-                    (projectile-relevant-known-projects))))
-
-      (when-let* ((name (file-name-nondirectory (directory-file-name project))))
-        (if (not first-tab-project)
-            (setq first-tab-project t)
-          (tab-bar-new-tab))
-        (projectile-switch-project-by-name project)
-        (tab-group (format "[%s]" name)))))
 
   (defun my/tab-next-in-group (&optional arg)
     "Move to the next tab that shares the current tab's `group' parameter.
@@ -1026,16 +991,15 @@ through tabs inside each group."
   (defun my/tab-next-group () (interactive) (my/tab-switch-group +1))
   (defun my/tab-prev-group () (interactive) (my/tab-switch-group -1))
   
-  ;;; --- UTILITIES FUNCTIONS
-  (defun emacs-solo/tab-group-from-project ()
+  (defun my/tab-group-from-project ()
     "Call `tab-group` with the current project name as the group."
     (interactive)
     (when-let* ((proj (project-current))
-		(name (file-name-nondirectory
+		(name (file-name-parent-base
 		       (directory-file-name (project-root proj)))))
       (tab-group (format "[%s]" name))))
 
-  (defun emacs-solo/tab-switch-to-group ()
+  (defun my/tab-switch-to-group ()
     "Prompt for a tab group and switch to its first tab.
 Uses position instead of index field."
     (interactive)
@@ -1053,10 +1017,36 @@ Uses position instead of index field."
 		(tab-bar-select-tab i)))
 	    (setq i (1+ i)))))))
 
-  ;;; --- EXTRA KEYBINDINGS
-  (global-set-key (kbd "C-x t P") #'emacs-solo/tab-group-from-project)
-  (global-set-key (kbd "C-x t g") #'emacs-solo/tab-switch-to-group)
+  (tab-bar-mode t))
 
-  ;;; --- TURNS ON BY DEFAULT
-  (tab-bar-mode 1))
+(use-package vterm
+  :ensure t)
 
+;; This is valid after emacs-31. We use this in WSL side.
+;;(use-package c-ts-mode
+;;  :init
+;;  (setq c-ts-mode-indent-offset 4)
+;;  :config
+;;  ;;(setq c-ts-mode-indent-style 'bsd)
+;;
+;;  (defun my-custom-c-ts-indent-rules ()
+;;  "Combine BSD rules with custom rules for `c-ts-mode`."
+;;  (let ((bsd-rules (c-ts-mode--simple-indent-rules 'c 'bsd)))
+;;    (append bsd-rules
+;;            `(
+;;	      ;; Add new rules here.
+;;  	      ;;((match "case_statement" "compound_statement") parent-bol c-ts-mode-indent-offset)
+;;  	      ))))
+;;
+;;  (defun my-setup-c-ts-mode ()
+;;    "Setup custom indentation for `c-ts-mode`."
+;;    (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
+;;    (setq-local treesit-simple-indent-rules (my-custom-c-ts-indent-rules))
+;;    (setq-local treesit-font-lock-settings
+;;	      (append treesit-font-lock-settings my/ts-font-lock-settings))
+;;    )
+;;
+;;  (add-hook 'c-ts-mode-hook #'my-setup-c-ts-mode)
+;;  ;; Do we need to add c++ separately?
+;;  (add-hook 'c++-ts-mode-hook #'my-setup-c-ts-mode)
+;;  )
