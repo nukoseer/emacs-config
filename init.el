@@ -876,11 +876,11 @@ targets."
 (use-package copilot
   :ensure t
   :hook (prog-mode-hook . copilot-mode)
-  :bind (("C-c m" . my/copilot-complete-or-accept)
+  :bind (("C-c C-m" . my/copilot-complete-or-accept)
          :map copilot-mode-map
-         ("C-c n" . copilot-next-completion)
-         ("C-c p" . copilot-previous-completion)
-         ("C-c l" . my/copilot-accept-completion-by-line)
+         ("C-c C-n" . copilot-next-completion)
+         ("C-c C-p" . copilot-previous-completion)
+         ("C-c C-l" . my/copilot-accept-completion-by-line)
          :repeat-map copilot-repeat-map
          ("n" . copilot-next-completion)
          ("p" . copilot-previous-completion)
