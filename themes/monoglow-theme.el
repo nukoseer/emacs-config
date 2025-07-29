@@ -173,7 +173,8 @@
    `(tab-bar-tab ((,class :foreground ,(monoglow-color :glow) :underline t)))
    `(tab-bar-tab-inactive ((,class ( :foreground ,(monoglow-color :glow)))))
    `(tab-bar-tab-group-current ((,class :foreground ,(monoglow-color :glow) :weight bold)))
-   `(tab-bar-tab-group-inactive ((,class (:foreground ,(monoglow-color :gray5)))))
+   `(tab-bar-tab-group-inactive ((,class (:foreground ,(monoglow-color :gray5) :weight bold))))
+   
    `(term-color-green ((,class :foreground ,(monoglow-color :glow))))
    `(term-color-bright-green ((,class :foreground ,(monoglow-color :glow-brighten))))
    `(term-color-black ((,class :foreground ,(monoglow-color :gray3))))

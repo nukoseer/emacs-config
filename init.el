@@ -911,16 +911,17 @@ is available. Useful if you tend to hammer your keys like I do."
   (tab-bar-define-keys nil)
   (tab-bar-close-button-show nil)
   (tab-bar-new-button-show nil)
-  (tab-bar-tab-hints t)
+  ;; (tab-bar-tab-hints t)
   (tab-bar-auto-width nil)
-  ;;  (tab-bar-separator " ")
+   (tab-bar-separator nil)
   (tab-bar-format '(tab-bar-format-tabs-groups
-       	            ;;tab-bar-format-tabs tab-bar-separator
+       	            ;;tab-bar-format-tabs
+                    tab-bar-separator
        	            tab-bar-format-add-tab))
   :init
 
-  (defun tab-bar-tab-name-format-hints (name _tab i)
-    (if tab-bar-tab-hints (concat (format "»%d«" i) "") name))
+  ;; (defun tab-bar-tab-name-format-hints (name _tab i)
+  ;;   (if tab-bar-tab-hints (concat (format "»%d«" i) "") name))
   
   (defun tab-bar-tab-group-format-default (tab _i &optional current-p)
     (propertize
