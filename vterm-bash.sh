@@ -38,8 +38,17 @@ vterm_cmd() {
     vterm_printf "51;E$vterm_elisp"
 }
 
-vterm_set_directory() {
-    vterm_cmd update-pwd "$PWD/"
+vterm_prompt_end(){
+    vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
+}
+PS1=$PS1'\[$(vterm_prompt_end)\]'
+
+
+find_file() {
+    vterm_cmd find-file "$(realpath "${@:-.}")"
 }
 
-PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }vterm_set_directory"
+say() {
+    vterm_cmd message "%s" "$*"
+}
+
