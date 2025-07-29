@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Put this block to ~/.bashrc
+# if [[ "$INSIDE_EMACS" = 'vterm' ]] \
+#     && [[ -n ${EMACS_VTERM_PATH} ]] \
+#     && [[ -f ${EMACS_VTERM_PATH}../../vterm-bash.sh ]]; then
+# 	source ${EMACS_VTERM_PATH}../../vterm-bash.sh
+# fi
+
 if [ "$INSIDE_EMACS" = 'vterm' ]; then
     clear() {
         vterm_printf "51;Evterm-clear-scrollback";

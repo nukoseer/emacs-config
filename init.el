@@ -414,28 +414,10 @@
 	 ("M-s d" . projectile-find-dir)
 	 ("M-s 4 f" . projectile-find-file-other-window)
 	 ("C-x o" . projectile-find-other-file)
-	 ("C-x 4 o" . projectile-find-other-file-other-window)
-         :map projectile-command-map
-         ("t" . my/projectile-switch-project-in-new-tab))
+	 ("C-x 4 o" . projectile-find-other-file-other-window))
 
   :config
 
-  (setq first-tab-project nil)
-
-  (defun my/projectile-switch-project-in-new-tab ()
-    "Prompt for a project, create a new tab, then visit the project."
-    (interactive)
-    (let ((project (projectile-completing-read
-                    "Switch to project: "
-                    (projectile-relevant-known-projects))))
-
-      (when-let* ((name (file-name-parent-base (directory-file-name project))))
-        (if (not first-tab-project)
-            (setq first-tab-project t)
-          (tab-bar-new-tab))
-        (projectile-switch-project-by-name project)
-        (tab-group (format "[%s]" name)))))
-  
   (setq projectile-generic-command "fd . -0 --type f --color=never --full-path") ;; --strip-cwd-prefix
   (setq projectile-git-fd-args "-H -0 -E .git -tf --color=never") ;; --strip-cwd-prefix
 
@@ -915,12 +897,9 @@ is available. Useful if you tend to hammer your keys like I do."
 
 (use-package tab-bar
   :defer t
-  :after projectile
   :bind (:map tab-prefix-map
               ("N" . my/tab-next-group)
-              ("P" . my/tab-prev-group)
               ("n" . my/tab-next-in-group)
-              ("p" . my/tab-prev-in-group)
               ("P" . my/tab-group-from-project)
               ("g" . my/tab-switch-to-group)
               :repeat-map tab-bar-repeat-map
@@ -994,14 +973,6 @@ through tabs inside each group."
   (defun my/tab-next-group () (interactive) (my/tab-switch-group +1))
   (defun my/tab-prev-group () (interactive) (my/tab-switch-group -1))
   
-  (defun my/tab-group-from-project ()
-    "Call `tab-group` with the current project name as the group."
-    (interactive)
-    (when-let* ((proj (project-current))
-		(name (file-name-parent-base
-		       (directory-file-name (project-root proj)))))
-      (tab-group (format "[%s]" name))))
-
   (defun my/tab-switch-to-group ()
     "Prompt for a tab group and switch to its first tab.
 Uses position instead of index field."
@@ -1020,7 +991,53 @@ Uses position instead of index field."
 		(tab-bar-select-tab i)))
 	    (setq i (1+ i)))))))
 
-  (tab-bar-mode t))
+  (defvar first-tab-set nil
+    "Variable to check if it is first project tab created.")
+
+  (defun my/default-tab-group ()
+    (setq first-tab-set t)
+    (tab-group (format "[%s]" (file-name-parent-base (directory-file-name "~/.emacs.d")))))
+  
+  (tab-bar-mode t)
+  
+  (my/default-tab-group)
+  (add-hook 'server-after-make-frame-hook #'my/default-tab-group))
+
+;; This is not a package.
+;; Integration for tab-bar and projectile.
+(use-package projectile-tab-bridge
+  :ensure nil
+  :no-require t
+  :after (projectile tab-bar)
+  :demand t
+  :bind (:map tab-prefix-map
+              ("P" . my/tab-group-from-project)
+              :map projectile-command-map
+              ("t" . my/projectile-switch-project-in-new-tab))
+  :config
+
+  (defun my/projectile-switch-project-in-new-tab ()
+    "Switch PROJECTILE project in a new tab group."
+    (interactive)
+    (let* ((proj (projectile-completing-read
+                  "Switch to project: "
+                  (projectile-relevant-known-projects)))
+           (name (file-name-parent-base
+                  (directory-file-name proj))))
+      (unless first-tab-set
+        (setq first-tab-set t)
+        (tab-group (format "[%s]" name))) ; rename current group first
+      (when first-tab-set
+        (tab-bar-new-tab))
+      (projectile-switch-project-by-name proj)
+      (tab-group (format "[%s]" name))))
+
+  (defun my/tab-group-from-project ()
+    "Rename current tab-group from current Projectile project."
+    (interactive)
+    (when-let* ((proj (project-current nil))
+                (name (file-name-parent-base (project-root proj))))
+      (tab-group (format "[%s]" name)))))
 
 (use-package vterm
   :ensure t
