@@ -895,6 +895,8 @@ is available. Useful if you tend to hammer your keys like I do."
             (forward-line)
             (copilot-complete))))))
 
+;; https://www.rahuljuliato.com/posts/emacs-tab-bar-groups
+;; https://www.rousette.org.uk/archives/using-the-tab-bar-in-emacs/
 (use-package tab-bar
   :defer t
   :bind (:map tab-prefix-map

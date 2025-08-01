@@ -152,7 +152,7 @@
    `(which-key-key-face         ((,class :foreground ,(monoglow-color :glow))))
    `(help-key-binding           ((,class :foreground ,(monoglow-color :glow))))
 
-   `(fancy-dabbrev-preview-face   ((,class :underline t)))
+   `(fancy-dabbrev-preview-face   ((,class :background ,(monoglow-color :modeline) :underline t)))
    `(fancy-dabbrev-menu-face      ((,class :foreground ,(monoglow-color :gray7) :background ,(monoglow-color :modeline)))) ;; :box (:line-width -1 :color ,(monoglow-color :gray4))
    `(fancy-dabbrev-selection-face ((,class :foreground ,(monoglow-color :black) :background ,(monoglow-color :glow) :weight bold)))
 
@@ -191,6 +191,9 @@
    `(term-color-bright-cyan  ((,class :foreground ,(monoglow-blend (monoglow-color :gray10) 0.80 (monoglow-color :fg)))))
    `(term-color-white  ((,class :foreground ,(monoglow-color :gray10))))
    `(term-color-bright-white  ((,class :foreground ,(monoglow-color :white))))
+
+   ;; For <<'EOF' .. EOF sequence.
+   `(sh-heredoc  ((,class :foreground ,(monoglow-color :gray6))))
    ))
 
 ;;(defun my/unhighlight-dot ()
