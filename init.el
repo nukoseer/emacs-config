@@ -48,7 +48,7 @@
 
   (setq-default indent-tabs-mode nil)
   (setq lexical-binding t)
-  
+
   (setq dabbrev-case-distinction nil)
   (setq dabbrev-case-fold-search nil)
   (setq dabbrev-case-replace nil)
@@ -60,9 +60,11 @@
   ;;(setq display-line-numbers-type 'relative)
   ;;(setq linum-format " %5i ")
 
-  ;; switch-to-buffer-other-window will switch vertically
+  (setq split-width-threshold (- (window-width) 10))
+  (setq split-height-threshold nil)
+
   ;;(setq split-width-threshold nil)
-  (setq split-height-threshold 200)
+  ;; (setq split-height-threshold 200)
 
   (setq window-divider-default-places 'right-only)
   ;;(setq window-divider-default-right-width 12)
@@ -133,7 +135,7 @@
 			             (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
                                      (local-set-key (kbd "C-c C-c") #'comment-region)
 			             (local-set-key (kbd "C-c C-v") #'uncomment-region)))
-  
+
   (add-hook 'prog-mode-hook '(lambda ()
 			       (local-set-key (kbd "<tab>") #'fancy-dabbrev-expand)
                                (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
@@ -142,21 +144,21 @@
 
   (add-hook 'asm-mode-hook '(lambda ()
 			      (local-unset-key (kbd ";"))))
-  
+
   (load-theme 'monoglow t)
   (startup-screen)
 
   (org-babel-do-load-languages
    'org-babel-load-languages '((C . t)))
-  
+
   ;; Introduce a bottom side window that catches compilations, greps etc.
   (add-to-list 'display-buffer-alist
-	       `(,(rx (| "*compilation*" "*grep*" "*ripgrep*" "*rg*" "*haskell*" "*Async Shell Command*"))
-		 (display-buffer-in-side-window)
-		 (side . bottom)
-		 (slot . 0)
-		 (window-parameters . ((no-delete-other-windows . t)))
-		 (window-height . 0.25)))
+               `(,(rx (| "*compilation*" "*grep*" "*ripgrep*" "*rg*" "*haskell*" "*Async Shell Command*" "*vterm*"))
+        	 (display-buffer-in-side-window)
+        	 (side . bottom)
+        	 (slot . 0)
+        	 (window-parameters . ((no-delete-other-windows . t)))
+        	 (window-height . 0.25)))
 
   ;; We override these 2 functions to prevent pulsing after jumps.
   ;; (defcustom xref-after-jump-hook '(recenter)
@@ -172,7 +174,44 @@
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
 	'(read-only t cursor-intangible t face minibuffer-prompt))
-  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+  (defun count-visible-buffers (&optional frame)
+    "Count how many buffers are currently being shown. Defaults to selected frame."
+    (length (mapcar #'window-buffer (window-list frame))))
+
+  (defun do-not-split-more-than-two-windows (window &optional horizontal)
+    (if (and horizontal (> (count-visible-buffers) 1))
+        nil
+      t))
+
+  (advice-add 'window-splittable-p :before-while #'do-not-split-more-than-two-windows)
+
+  ;; The desired ratio of the focused window's size.
+  ;; (setopt auto-resize-ratio 0.70)
+
+  ;; (defun win/auto-resize ()
+  ;;   (let* (
+  ;;          (height (floor (* auto-resize-ratio (frame-height))))
+  ;;          (width (floor (* auto-resize-ratio (frame-width))))
+  ;;          ;; INFO We need to calculate by how much we should enlarge
+  ;;          ;; focused window because Emacs does not allow setting the
+  ;;          ;; window dimensions directly.
+  ;;          (h-diff (max 0 (- height (window-height))))
+  ;;          (w-diff (max 0 (- width (window-width)))))
+  ;;     (enlarge-window h-diff)
+  ;;     (enlarge-window w-diff t)))
+
+  ;; (advice-add 'other-window :after  (lambda (&rest args)
+  ;;                                     (win/auto-resize)))
+  ;; (advice-add 'switch-to-buffer-other-window :after  (lambda (&rest args)
+  ;;                                                      (win/auto-resize)))
+
+  ;; (advice-add 'projectile-find-file-other-window :after  (lambda (&rest args)
+  ;;                                                          (win/auto-resize)))
+  ;; (advice-add 'consult-buffer-other-window :after  (lambda (&rest args)
+  ;;                                                    (win/auto-resize)))
+  )
 
 (use-package window
   :bind (:map window-prefix-map
@@ -504,6 +543,15 @@
   ;; after lazily loading the package.
   :config
 
+  (defun my/excluded-buffers-p (buffer)
+    "Return t if BUFFER is a `*compilation*` buffer, else nil."
+    (let ((name (buffer-name buffer)))
+      (string-match-p
+       (rx (or "*compilation*" "*grep*" "*ripgrep*" "*rg*" "*haskell*" "*Async Shell Command*" "*vterm*"))
+       name)))
+
+  (setq consult-preview-excluded-buffers 'my/excluded-buffers-p)
+
   (defun consult-project-buffer-other-window ()
     (interactive)
     (let ((consult--buffer-display #'switch-to-buffer-other-window))
@@ -581,7 +629,7 @@
   :config
 
   (add-to-list 'embark-pre-action-hooks '(:always embark--unmark-target))
-  
+
   (setq embark-help-key ".")
 
   (defun embark-which-key-indicator ()
@@ -686,8 +734,7 @@ targets."
   (setq treesit-language-source-alist
         '((c "https://github.com/tree-sitter/tree-sitter-c")
           (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
-          (bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.23.3"))
-          ))
+          (bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.23.3"))))
 
   (setq treesit-font-lock-level 4)
   ;;(setq treesit--indent-verbose t)
@@ -779,7 +826,7 @@ targets."
 		  ("field" "\\`field_declaration\\'" nil c-ts-mode--struct-field-name)
 		  ("#define" "\\`preproc_def\\'" nil c-ts-mode--preprocessor-define)
 		  ("#include" "\\`preproc_include\\'" nil c-ts-mode--preprocessor-include)))
-    
+
     (local-set-key (kbd "<C-tab>") #'indent-for-tab-command)
     (setq-local treesit-simple-indent-rules (my-custom-c-ts-indent-rules))
 
@@ -788,7 +835,7 @@ targets."
       (setq-local c-ts-common-list-indent-style 'simple))
      ((derived-mode-p 'c++-ts-mode)
       (setq-local c++-ts-common-list-indent-style 'simple)))
-    
+
     (setq-local treesit-font-lock-settings
   		(append treesit-font-lock-settings my/ts-font-lock-settings)))
 
@@ -814,7 +861,7 @@ targets."
                                        :query t
                                        :word (and current-prefix-arg (not (eq current-prefix-arg '-))))))
     (visual-replace args ranges)))
-    
+
 (use-package expreg
   :ensure t
   :bind (("C-," . expreg-expand)
@@ -924,7 +971,7 @@ is available. Useful if you tend to hammer your keys like I do."
 
   ;; (defun tab-bar-tab-name-format-hints (name _tab i)
   ;;   (if tab-bar-tab-hints (concat (format "»%d«" i) "") name))
-  
+
   (defun tab-bar-tab-group-format-default (tab _i &optional current-p)
     (propertize
      (concat (funcall tab-bar-tab-group-function tab))
@@ -958,7 +1005,7 @@ With numeric prefix ARG, move ARG tabs forward (negative = backward)."
       (when idx
         ;; tab-bar-select-tab uses 1-based indices
         (tab-bar-select-tab (1+ idx)))))
-  
+
   (defun my/tab-switch-group (delta)
     "Move 1 group forward (negative = backward) **without** cycling
 through tabs inside each group."
@@ -975,7 +1022,7 @@ through tabs inside each group."
 
   (defun my/tab-next-group () (interactive) (my/tab-switch-group +1))
   (defun my/tab-prev-group () (interactive) (my/tab-switch-group -1))
-  
+
   (defun my/tab-switch-to-group ()
     "Prompt for a tab group and switch to its first tab.
 Uses position instead of index field."
@@ -1000,9 +1047,10 @@ Uses position instead of index field."
   (defun my/default-tab-group ()
     (setq first-tab-set t)
     (tab-group (format "[%s]" (file-name-parent-base (directory-file-name "~/.emacs.d")))))
-  
+
   (tab-bar-mode t)
-  
+
+
   (my/default-tab-group)
   (add-hook 'server-after-make-frame-hook #'my/default-tab-group))
 
@@ -1048,18 +1096,10 @@ Uses position instead of index field."
   :config
   (add-to-list 'vterm-eval-cmds '("update-pwd" (lambda (path) (setq default-directory path))))
 
-  (add-to-list 'display-buffer-alist
-               `(,(rx (| "*vterm*"))
-        	 (display-buffer-in-side-window)
-        	 (side . bottom)
-        	 (slot . 0)
-        	 (window-parameters . ((no-delete-other-windows . t)))
-        	 (window-height . 0.25)))
-  
   (defvar my/vterm-prev-window nil
     "The window that was selected right before a vterm was popped.
 Used by `my/toggle-vterm' to restore focus when the vterm is hidden.")
-  
+
   (defun my/toggle-vterm (&optional arg)
     "Toggle a side-window vterm.
      Behaviour:
