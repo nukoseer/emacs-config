@@ -32,10 +32,11 @@
  '(org-safe-remote-resources '("\\`https://fniessen\\.github\\.io\\(?:/\\|\\'\\)"))
  '(package-selected-packages
    '(avy buffer-move consult-dir copilot dumb-jump embark-consult
-         expand-region expreg fancy-dabbrev gcmh highlight-numbers
-         marginalia modus-themes move-text multiple-cursors
-         nano-modeline orderless projectile rainbow-delimiters rg
-         smartscan vertico visual-replace vterm vundo)))
+         expand-region expreg fancy-dabbrev gcmh gptel
+         highlight-numbers marginalia markdown-mode modus-themes
+         move-text multiple-cursors nano-modeline orderless projectile
+         rainbow-delimiters rg smartscan vertico visual-replace vterm
+         vundo)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -370,14 +371,17 @@
 
 (use-package multiple-cursors
   :ensure t
-  :bind (
-	 ("C-c c" . mc/edit-lines)
-	 ("C->"   . mc/mark-next-like-this-word)
-	 ("C-<"   . mc/mark-previous-like-this-word)
-	 ("C-c a" . mc/mark-all-like-this)))
+  :bind (("C-x C-c l" . mc/edit-lines)
+	 ("C-x C-c n"   . mc/mark-next-like-this-word)
+	 ("C-x C-c p"   . mc/mark-previous-like-this-word)
+	 ("C-x C-c a" . mc/mark-all-like-this)
+         :repeat-map multiple-cursors-repeat-map
+         ("l" . mc/edit-lines)
+	 ("n" . mc/mark-next-like-this-word)
+	 ("p" . mc/mark-previous-like-this-word)
+	 ("a" . mc/mark-all-like-this)))
 
-(use-package make-mark-visible
-  :bind (("C-c v" . mmv-toggle-mark-visibility)))
+(use-package make-mark-visible)
 
 (use-package narrow-indirect
   :init
@@ -1147,6 +1151,57 @@ Used by `my/toggle-vterm' to restore focus when the vterm is hidden.")
                (win (or (get-buffer-window buf 'visible)
                         (display-buffer buf))))
           (select-window win)))))))
+
+(use-package markdown-mode
+  :custom
+  (markdown-hide-markup t)
+  (markdown-header-scaling t)
+  (markdown-hide-urls t)
+  (markdown-fontify-code-blocks-natively t)
+  )
+
+(use-package gptel
+  :bind (("C-c j" . gptel-menu))
+  :config
+  (setq gptel-default-mode 'text-mode)
+  (setf (alist-get 'text-mode gptel-prompt-prefix-alist) "### Prompt: "
+        (alist-get 'text-mode gptel-response-prefix-alist) "### Response: \n")
+
+  (setq gptel-model 'gpt-4o
+        gptel-backend (gptel-make-gh-copilot "Copilot"))
+  
+  (setf (alist-get 'infill gptel-directives) #'my/gptel-code-infill)
+  (defun my/gptel-code-infill ()
+    "Fill in code at point based on buffer context.  Note: Sends the whole buffer."
+    (let ((lang (gptel--strip-mode-suffix major-mode)))
+      `(,(format "You are a %s programmer and assistant in a code buffer in a text editor.
+
+Follow my instructions and generate %s code to be inserted at the cursor.
+For context, I will provide you with the code BEFORE and AFTER the cursor.
+
+
+Generate %s code and only code without any explanations or markdown code fences. NEVER EVER use markdown formatting. You may include code comments.
+
+Do not repeat any of the BEFORE or AFTER code." lang lang lang)
+        nil
+        "What is the code AFTER the cursor?"
+        ,(format "AFTER\n```\n%s\n```\n"
+                 (buffer-substring-no-properties
+                  (if (use-region-p) (max (point) (region-end)) (point))
+                  (point-max)))
+        "And what is the code BEFORE the cursor?"
+        ,(format "BEFORE\n```%s\n%s\n```\n" lang
+                 (buffer-substring-no-properties
+                  (point-min)
+                  (if (use-region-p) (min (point) (region-beginning)) (point))))
+        ,@(when (use-region-p) "What should I insert at the cursor?")))))
+
+(use-package llm-tool-collection
+  :after gptel
+  ;; :ensure (:host github :repo "skissue/llm-tool-collection")
+  :config (mapcar (apply-partially #'apply #'gptel-make-tool)
+                  (llm-tool-collection-get-all))
+  :defer)
 
 ;; This is valid after emacs-31. We use this in WSL side.
 ;;(use-package c-ts-mode
