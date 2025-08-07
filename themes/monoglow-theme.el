@@ -192,6 +192,9 @@
    `(term-color-white  ((,class :foreground ,(monoglow-color :gray10))))
    `(term-color-bright-white  ((,class :foreground ,(monoglow-color :white))))
 
+   `(fixed-pitch  ((,class :family "Iosevka NFM")))
+   `(markdown-code-face  ((,class :background ,(monoglow-color :modeline) :extend t)))
+
    ;; For <<'EOF' .. EOF sequence.
    `(sh-heredoc  ((,class :foreground ,(monoglow-color :gray6))))
    ))

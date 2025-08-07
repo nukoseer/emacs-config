@@ -98,7 +98,6 @@
 	 ("M-<right>" . enlarge-window-horizontally)
 	 ("M-<left>"  . shrink-window-horizontally)
 	 ("C-x C-z"   . grep-fd)
-	 ("C-x C-c"   . nil)
 	 ("<M-f4>"    . save-buffers-kill-terminal)
 	 ("C-M-c"     . scroll-other-window-down)
 	 ("C-x C-b"   . ibuffer)
@@ -112,6 +111,7 @@
 	 ("M-n"       . forward-paragraph)
 	 ("M-p"       . backward-paragraph)
 	 ("C-/"       . duplicate-line)
+         ("C-x C-x"   . (lambda () (interactive) (if (not (use-region-p)) (exchange-point-and-mark)) (exchange-point-and-mark)))
          (:map ctl-x-4-map
                ("t" . toggle-window-split)))
 
@@ -1157,15 +1157,18 @@ Used by `my/toggle-vterm' to restore focus when the vterm is hidden.")
   (markdown-hide-markup t)
   (markdown-header-scaling t)
   (markdown-hide-urls t)
-  (markdown-fontify-code-blocks-natively t)
-  )
+  (markdown-fontify-code-blocks-natively t))
 
 (use-package gptel
   :bind (("C-c j" . gptel-menu))
   :config
-  (setq gptel-default-mode 'text-mode)
-  (setf (alist-get 'text-mode gptel-prompt-prefix-alist) "### Prompt: "
-        (alist-get 'text-mode gptel-response-prefix-alist) "### Response: \n")
+  (setq gptel-default-mode 'gfm-mode)
+  (setf (alist-get 'markdown-mode gptel-prompt-prefix-alist) "##### Prompt: \n"
+        (alist-get 'markdown-mode gptel-response-prefix-alist) "##### Response: \n"
+        (alist-get 'gfm-mode gptel-prompt-prefix-alist) "##### Prompt: \n"
+        (alist-get 'gfm-mode gptel-response-prefix-alist) "##### Response: \n"
+        (alist-get 'org-mode gptel-prompt-prefix-alist) "*Prompt*: \n"
+        (alist-get 'org-mode gptel-response-prefix-alist) "*Response*: \n")
 
   (setq gptel-model 'gpt-4o
         gptel-backend (gptel-make-gh-copilot "Copilot"))
@@ -1194,11 +1197,42 @@ Do not repeat any of the BEFORE or AFTER code." lang lang lang)
                  (buffer-substring-no-properties
                   (point-min)
                   (if (use-region-p) (min (point) (region-beginning)) (point))))
-        ,@(when (use-region-p) "What should I insert at the cursor?")))))
+        ,@(when (use-region-p) "What should I insert at the cursor?"))))
+
+
+  (cl-defun my/clean-up-gptel-refactored-code (beg end)
+    "Clean up the code responses for refactored code in the current buffer.
+
+The response is placed between BEG and END.  The current buffer is
+guaranteed to be the response buffer."
+    (when gptel-mode          ; Don't want this to happen in the dedicated buffer.
+      (cl-return-from my/clean-up-gptel-refactored-code))
+    (when (and beg end)
+      (save-excursion
+        (let ((contents
+               (replace-regexp-in-string
+                "\n*``.*\n*" ""
+                (buffer-substring-no-properties beg end))))
+          (delete-region beg end)
+          (goto-char beg)
+          (insert contents))
+        ;; Indent the code to match the buffer indentation if it's messed up.
+        (indent-region beg end)
+        (pulse-momentary-highlight-region beg end))))
+  
+  (add-hook 'gptel-post-response-functions #'my/clean-up-gptel-refactored-code)
+
+  (defun my/gptel-finish-code-block (beg end)
+    "Force fontify again for correct markdown formatting.
+     This is expensive probably but what you gonna do. "
+      (when (and beg end gptel-mode)
+        (font-lock-flush beg end)
+        (font-lock-ensure beg end)))
+
+  (add-hook 'gptel-post-response-functions #'my/gptel-finish-code-block))
 
 (use-package llm-tool-collection
   :after gptel
-  ;; :ensure (:host github :repo "skissue/llm-tool-collection")
   :config (mapcar (apply-partially #'apply #'gptel-make-tool)
                   (llm-tool-collection-get-all))
   :defer)
