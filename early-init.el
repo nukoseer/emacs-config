@@ -57,6 +57,7 @@
 (global-auto-revert-mode t)
 (window-divider-mode t)
 (global-eldoc-mode 0)
+(delete-selection-mode t)
 
 (defun my-load-all-in-directory (dir)
   "`load' all elisp libraries in directory DIR which are not already loaded."

@@ -454,8 +454,11 @@
   :defer t
   :bind-keymap (("C-x p" . projectile-command-map))   ;; default was C-c p
   :bind (("M-s f" . projectile-find-file)
+         ("M-s 4 f" . projectile-find-file-other-window)
 	 ("M-s d" . projectile-find-dir)
-	 ("M-s 4 f" . projectile-find-file-other-window)
+         ("M-s 4 d" . projectile-find-dir-other-window)
+         ("M-s D" . projectile-dired)
+         ("M-s 4 D" . projectile-dired-other-window)
 	 ("C-x o" . projectile-find-other-file)
 	 ("C-x 4 o" . projectile-find-other-file-other-window))
 
