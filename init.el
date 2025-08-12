@@ -373,8 +373,8 @@
 (use-package multiple-cursors
   :ensure t
   :bind (("C-x C-c l" . mc/edit-lines)
-	 ("C-x C-c n"   . mc/mark-next-like-this-word)
-	 ("C-x C-c p"   . mc/mark-previous-like-this-word)
+	 ("C-x C-c n" . mc/mark-next-like-this-word)
+	 ("C-x C-c p" . mc/mark-previous-like-this-word)
 	 ("C-x C-c a" . mc/mark-all-like-this)
          :repeat-map multiple-cursors-repeat-map
          ("l" . mc/edit-lines)
@@ -778,6 +778,7 @@ targets."
 	     ((node-is "field_declaration_list") parent-bol 0)
 	     ((node-is "enumerator_list") parent-bol 0)
 	     ((and (node-is "compound_statement") (parent-is "compound_statement")) parent-bol c-ts-mode-indent-offset)
+	     ((and (node-is "compound_statement") (parent-is "preproc_ifdef")) parent-bol c-ts-mode-indent-offset)
 	     ((node-is "compound_statement") parent-bol 0)
 	     ((match "case_statement" "compound_statement") parent-bol c-ts-mode-indent-offset)
 	     ;; For top level initializer_list
@@ -843,6 +844,8 @@ targets."
       (setq-local c-ts-common-list-indent-style 'simple))
      ((derived-mode-p 'c++-ts-mode)
       (setq-local c++-ts-common-list-indent-style 'simple)))
+
+    (setq-local indent-tabs-mode nil)
 
     (setq-local treesit-font-lock-settings
   		(append treesit-font-lock-settings my/ts-font-lock-settings)))
@@ -1172,6 +1175,7 @@ Used by `my/toggle-vterm' to restore focus when the vterm is hidden.")
           (select-window win)))))))
 
 (use-package markdown-mode
+  :ensure t
   :custom
   (markdown-hide-markup t)
   (markdown-header-scaling t)
