@@ -79,7 +79,7 @@
   (setq switch-to-buffer-obey-display-actions t)
 
   ;; Enable recursive minibuffers
-  (setq enable-recursive-minibuffers nil)
+  (setq enable-recursive-minibuffers t)
 
   (setq process-connection-type nil)
   (setq duplicate-line-final-position 1)
@@ -1045,6 +1045,22 @@ Uses position instead of index field."
 		(tab-bar-select-tab i)))
 	    (setq i (1+ i)))))))
 
+  (defun my/tab-switch-to-group-index (n)
+    "Select the first tab of the Nth distinct group in tab order (1-based)."
+    (interactive "nGroup #: ")
+    (let* ((tabs   (tab-bar-tabs))
+           (groups (delete-dups (mapcar (lambda (tab) (alist-get 'group tab)) tabs))))
+      (if (or (< n 1) (> n (length groups)))
+          (user-error "Only %d groups exist" (length groups))
+        (my/tab--select-first-of-group (nth (1- n) groups)))))
+
+  ;; Bind C-M-1..C-M-9 (and C-M-0 as 10th) to jump to that group.
+  (dolist (pair '(("C-M-1" . 1) ("C-M-2" . 2) ("C-M-3" . 3) ("C-M-4" . 4)))
+    (let ((key (car pair))
+          (n   (cdr pair)))
+      (keymap-global-set key (lambda () (interactive)
+                               (my/tab-switch-to-group-index n)))))
+
   (defvar first-tab-set nil
     "Variable to check if it is first project tab created.")
 
@@ -1053,7 +1069,6 @@ Uses position instead of index field."
     (tab-group (format "[%s]" (file-name-parent-base (directory-file-name "~/.emacs.d")))))
 
   (tab-bar-mode t)
-
 
   (my/default-tab-group)
   (add-hook 'server-after-make-frame-hook #'my/default-tab-group))
