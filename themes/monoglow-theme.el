@@ -195,6 +195,9 @@
    `(fixed-pitch  ((,class :family "Iosevka NFM")))
    `(markdown-code-face  ((,class :background ,(monoglow-color :modeline) :extend t)))
 
+   `(diff-refine-added  ((,class :background ,(face-background 'diff-added))))
+   `(diff-refine-removed  ((,class :background ,(face-background 'diff-removed))))
+
    ;; For <<'EOF' .. EOF sequence.
    `(sh-heredoc  ((,class :foreground ,(monoglow-color :gray6))))
    ))
