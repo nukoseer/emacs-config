@@ -157,11 +157,8 @@ This is the same as using \\[set-mark-command] with the prefix argument."
    (progn
      (grep-compute-defaults)
      (if grep-find-command
-	 (if (file-remote-p default-directory)
-	     (list (read-shell-command "Run find (like this): "
-				       '("fd \"\" . -x \"echo\" {}:1:" . 5) 'grep-find-history))
-	   (list (read-shell-command "Run find (like this): "
-				     `(,(format "fd \"\" %S -x cmd /C echo \"{}:1:\"" default-directory) . 5) 'grep-find-history)))
+	 (list (read-shell-command "Run find (like this): "
+				   '("fd \"\" . -x \"echo\" {}:1:" . 5) 'grep-find-history))
        ;; No default was set
        (read-string
         "compile.el: No `grep-find-command' command available. Press RET.")

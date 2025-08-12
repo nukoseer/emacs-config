@@ -98,6 +98,7 @@
 	 ("M-<right>" . enlarge-window-horizontally)
 	 ("M-<left>"  . shrink-window-horizontally)
 	 ("C-x C-z"   . grep-fd)
+	 ("C-x C-c"   . nil)
 	 ("<M-f4>"    . save-buffers-kill-terminal)
 	 ("C-M-c"     . scroll-other-window-down)
 	 ("C-x C-b"   . ibuffer)
